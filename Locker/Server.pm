@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Server.pm,v 1.14 2001/11/15 14:14:02 wsnyder Exp $
+# $Id: Server.pm,v 1.16 2002/04/03 21:50:18 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -77,9 +77,10 @@ use IPC::Locker;
 use Socket;
 use IO::Socket;
 use IO::Select;
+use Sys::Hostname;
 
 use strict;
-use vars qw($VERSION $Debug %Locks %Clients $Select $Interrupts);
+use vars qw($VERSION $Debug %Locks %Clients $Select $Interrupts $Hostname);
 use Carp;
 
 ######################################################################
@@ -88,7 +89,8 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.200';
+$VERSION = '1.300';
+$Hostname = (hostname() || "localhost");
 
 ######################################################################
 #### Globals
@@ -227,6 +229,9 @@ sub client_service {
 	$clientvar->{locks} = [split(/\s/,"$1 ")] if ($line =~ /^locks?\s+([^\n]*)$/m);
 	$clientvar->{block} = $1 if ($line =~ /^block\s+(\S*)$/m);
 	$clientvar->{timeout} = $1 if ($line =~ /^timeout\s+(\S*)$/m);
+	$clientvar->{autounlock} = $1 if ($line =~ /^autounlock\s+(\S*)$/m);
+	$clientvar->{hostname} = $1 if ($line =~ /^hostname\s+(\S*)$/m);
+	$clientvar->{pid} = $1 if ($line =~ /^pid\s+(\S*)$/m);
 	# Commands
 	client_unlock ($clientvar) if ($line =~ /^UNLOCK$/m);
 	client_status ($clientvar) if ($line =~ /^STATUS$/m);
@@ -283,7 +288,8 @@ sub client_status {
 sub client_lock {
     # Client wants this lock, return true if delayed transaction
     my $clientvar = shift || die;
-    # Wait for a free lock
+    my $did_check = 0;
+    # Look for a free lock
   trial:
     while (1) {
 	# Try all locks
@@ -300,19 +306,32 @@ sub client_lock {
 		last trial if ($locki->{owner} eq $clientvar->{user});
 	    }
 	}
+	# All locks busy.  Try to timeout some old prexisting locks.
+        # (on second pass due to overhead of sending out kill signals)
+	if (!$did_check) {
+	    $did_check = 1;
+	    recheck_locks();
+	    next trial;
+	}
 	# All locks busy
 	last trial if (!$clientvar->{block});
 	# It's busy, wait for them all
+	my $first_locki = undef;
 	foreach my $lockname (@{$clientvar->{locks}}) {
 	    print "**try2 $lockname\n" if $Debug;
 	    my $locki = locki_lookup ($lockname);
 	    if ($locki->{locked}) {
+		$first_locki = $locki;
 		push @{$locki->{waiters}}, $clientvar;
-		if (!$clientvar->{told_locked}) {
-		    $clientvar->{told_locked} = 1;
-		    client_send ($clientvar, "print_waiting $locki->{owner}\n");
+		if ($locki->{autounlock} && $clientvar->{autounlock}) {
+		    client_send ($clientvar, "autounlock_check $locki->{lock} $locki->{hostname} $locki->{pid}\n");
 		}
 	    }
+	}
+	# Tell the user
+	if (!$clientvar->{told_locked} && $first_locki) {
+	    $clientvar->{told_locked} = 1;
+	    client_send ($clientvar, "print_waiting $first_locki->{owner}\n");
 	}
 	# Either need to wait for timeout, or someone else to return key
 	return 1;	# Exit loop and check if can lock later
@@ -366,7 +385,7 @@ sub client_send {
     print "RESP $clientfh '$msg" if $Debug;
 
     local $SIG{PIPE} = 'IGNORE';
-    my $status = send $clientfh,$msg,0 ;
+    my $status = eval { send $clientfh,$msg,0; };
     if (!$status) {
 	warn "client_send hangup $? $! $status $clientfh " if $Debug;
 	client_close ($clientvar);
@@ -417,6 +436,9 @@ sub locki_lock {
 	} else {
 	    $locki->{timelimit} = 0;
 	}
+	$locki->{autounlock} = $clientvar->{autounlock};
+	$locki->{hostname} = $clientvar->{hostname};
+	$locki->{pid} = $clientvar->{pid};
 	$clientvar->{lock} = $locki->{lock};
 	print "Issuing $locki->{lock} $locki->{owner}\n" if $Debug;
 	if (client_status ($clientvar)) {
@@ -434,17 +456,33 @@ sub locki_unlock {
     my $locki = shift || die;
     $locki->{locked} = 0;
     $locki->{owner} = "unlocked";
+    $locki->{autounlock} = 0;
+    $locki->{hostname} = "";
+    $locki->{pid} = 0;
 }
 
 sub recheck_locks {
     # Main loop to see if any locks have changed state
     my $time = time();
     foreach my $locki (values %Locks) {
-	if ($locki->{locked}
-	    && $locki->{timelimit}
-	    && ($locki->{timelimit} <= $time)) {
-	    print "Timeout $locki->{lock} $locki->{owner}\n" if $Debug;
-	    locki_unlock ($locki);
+	if ($locki->{locked}) {
+	    if ($locki->{timelimit} && ($locki->{timelimit} <= $time)) {
+		print "Timeout $locki->{lock} $locki->{owner}\n" if $Debug;
+		locki_unlock ($locki);
+	    }
+	    elsif ($locki->{autounlock}) {   # locker said it was OK to break lock if he dies
+		if ($locki->{hostname} eq $Hostname) {	# lock owner is running on same host
+		    if (!kill(0,$locki->{pid})) {	# process does not exist
+			print "Autounlock $locki->{lock} $locki->{owner}\n" if $Debug;
+			locki_unlock($locki);		# break the lock
+		    }
+		}
+		else {
+		    # If not running on the same host, we may later try some
+		    # other method to determine whether the process is still
+		    # running.  For now, we do nothing.
+		}
+	    }
 	}
 	while (!$locki->{locked} && defined $locki->{waiters}[0]) {
 	    locki_lock ($locki);

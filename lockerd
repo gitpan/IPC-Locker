@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -Tw
 # lockerd - distributed lock handler for perl IPC::Locker
-# $Id: lockerd,v 1.13 2001/11/15 14:14:00 wsnyder Exp $
+# $Id: lockerd,v 1.14 2002/04/03 20:42:41 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -47,7 +47,7 @@ $result = &GetOptions (
 		       "help"		=> \&usage,
 		       "debug"		=> \&debug,
 		       "version"	=> \&version,
-		       "port=i"		=> sub {$server_params{port} = shift;},
+		       "port=i"		=> sub {$server_params{port} = $_[1];},
 		       "path=s"		=> sub {$server_params{port} = $_[1];
     	    	    			        $server_params{family}='UNIX';},
 		       );
@@ -81,14 +81,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd,v 1.13 2001/11/15 14:14:00 wsnyder Exp $ ', "\n";
+    print '$Id: lockerd,v 1.14 2002/04/03 20:42:41 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd,v 1.13 2001/11/15 14:14:00 wsnyder Exp $ ';
+    print 'Version: $Id: lockerd,v 1.14 2002/04/03 20:42:41 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }

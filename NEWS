@@ -6,6 +6,17 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in IPC::Locker 1.300 04/03/2002
+
+**	Added autounlock switch to locks.  This records the host
+	and pid which obtained the lock, and if that PID disappears
+	the lock is released to a new host.  [Stephen Adkins]
+
+***	Fixed bug which made lockerd --port option not work.
+
+***	Allow colon seperated hostnames for fallback hosting.
+
+
 * Changes in IPC::Locker 1.200 11/15/2001
 
 **	Allow multiple lock names on lock requests,
@@ -31,7 +42,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.7 2001/11/15 14:14:00 wsnyder Exp $
+$Id: NEWS,v 1.9 2002/04/03 21:50:15 wsnyder Exp $
 ----------------------------------------------------------------------
 Copyright information:
 

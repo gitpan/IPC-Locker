@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.18 2001/11/15 14:14:00 wsnyder Exp $
+# $Id: Locker.pm,v 1.21 2002/04/03 21:50:15 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -142,6 +142,13 @@ the timeout.  Defaults to 10 minutes.
 
 Name to request the lock under, defaults to host_pid_user
 
+=item autounlock
+
+True to cause the server to automatically timeout a lock if the locking
+process has died.  For the process to be detected, it must be on the same
+host as either the locker client (the host making the lock call), or the
+locker server.  Defaults false.
+
 =item verbose
 
 True to print messages when waiting for locks.  Defaults false.
@@ -183,7 +190,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.200';
+$VERSION = '1.300';
 
 ######################################################################
 #### Useful Globals
@@ -200,6 +207,7 @@ sub new {
     @_ >= 1 or croak 'usage: IPC::Locker->new ({options})';
     my $proto = shift;
     my $class = ref($proto) || $proto;
+    my $hostname = hostname() || "localhost";
     my $user = hostname() . "_".$$."_" . ($ENV{USER} || "");
     my $self = {
 	#Documented
@@ -207,6 +215,8 @@ sub new {
 	lock=>['lock'],
 	timeout=>60*10, block=>1,
 	user=>$user,
+	hostname=>$hostname,
+	autounlock=>0,
 	verbose=>$Debug,
 	print_broke=>sub {my $self=shift; print "Broke lock from $_[0] at ".(scalar(localtime))."\n" if $self->{verbose};},
 	print_obtained=>sub {my $self=shift; print "Obtained lock at ".(scalar(localtime))."\n" if $self->{verbose};},
@@ -297,17 +307,26 @@ sub lock_name {
 sub _request {
     my $self = shift;
     my $cmd = shift;
+  retry:
 
+    # If adding new features, only send the new feature to the server
+    # if the feature is on.  This allows for newer clients that don't
+    # need to the new feature to still talk to older servers.
     my $req = ("user $self->{user}\n"
 	       ."locks ".join(' ',@{_array_or_one($self->{lock})})."\n"
 	       ."block ".($self->{block}||0)."\n"
-	       ."timeout ".($self->{timeout}||0)."\n"
-	       ."$cmd\n");
+	       ."timeout ".($self->{timeout}||0)."\n");
+    $req.=    ("autounlock ".($self->{autounlock}||0)."\n"
+	       ."pid $$\n"
+	       ."hostname ".($self->{hostname})."\n"
+	       ) if $self->{autounlock};
+    $req.=    ("$cmd\n");
     print "REQ $req\n" if $Debug;
 
     my $fh;
     if ($self->{family} eq 'INET'){
 	my @hostlist = ($self->{host});
+	@hostlist = split (':', $self->{host}) if (!ref($self->{host}));
 	@hostlist = @{$self->{host}} if (ref($self->{host}) eq "ARRAY");
 
 	foreach my $host (@hostlist) {
@@ -356,11 +375,24 @@ sub _request {
 	    $self->{lock}   = [$args[0]];
 	    $self->{lock}   = $self->{lock}[0] if ($#{$self->{lock}}<1);  # Back compatible
 	}
+	if ($cmd eq "autounlock_check") {
+	    # See if we can break the lock because the lock holder ran on this same machine.
+	    my ($lname,$lhost,$lpid) = @args;
+	    if ($self->{hostname} eq $lhost) {
+		if (!kill(0,$lpid)) {	# process does not exist
+		    print "Autounlock_LOCAL $lname $lhost $lpid\n" if $Debug;
+		    $self->break_lock(lock=>$self->{lock});
+		    $fh->close();
+		    goto retry;
+		}
+	    }
+	}
 	&{$self->{print_obtained}} ($self,@args)  if ($cmd eq "print_obtained");
 	&{$self->{print_waiting}}  ($self,@args)  if ($cmd eq "print_waiting");
 	&{$self->{print_broke}}    ($self,@args)  if ($cmd eq "print_broke");
 	print "$1\n" if ($line =~ /^ECHO\s+(.*)$/ && $self->{verbose});  #debugging
     }
+    # Note above break_lock also has prologue close
     $fh->close();
 }
 
