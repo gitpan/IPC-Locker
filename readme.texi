@@ -1,0 +1,96 @@
+\input texinfo @c -*-texinfo-*-
+@c %**start of header
+@setfilename readme.info
+@settitle Perl IPC::Locker Installation
+@c %**end of header
+
+@c This file is included by autoconf.texi and is used to produce
+@c the INSTALL file.
+
+@node Top, Copyright, (dir), (dir)
+
+This is the IPC::Locker Perl Package.
+
+@menu
+* Copyright::                   
+* Description::                 
+* Obtaining Distribution::      
+* Supported Systems::           
+* Installation::                
+@end menu
+
+@node Copyright, Description, Top, Top
+@section Copyright
+
+This package is Copyright 1998 by Wilson Snyder @email{wsnyder@@ultranet.com}.
+
+You may distribute under the terms of either the GNU General Public License
+or the Artistic License, as specified in the Perl README file, with the
+exception that it cannot be placed on a CD-ROM or similar media for commercial
+distribution without the prior approval of the author.
+
+This code is provided with no warranty of any kind, and is used entirely at
+your own risk.
+
+@node Description, Obtaining Distribution, Copyright, Top
+@section Description
+
+This package provides a server for locks and a package for clients to access
+that server.  The result is that clients can access named locks on a Internet
+wide bases, solving critical section problems without the mess of NFS or other
+file locking techniques.
+
+For example:
+
+@example
+  my $lock = IPC::Locker->lock(host=>'example.std.com');
+  ... Critical section ...
+  $lock->unlock();
+@end example
+
+See @samp{man IPC::Locker} after installation.
+
+@node Obtaining Distribution, Supported Systems, Description, Top
+@section Obtaining Distribution
+
+The latest version is available at 
+@uref{http://www.perl.org/CPAN/}
+
+Download the latest package from that site, and decompress.
+@samp{gunzip IPC::Locker_version.tar.gz ; tar xvf IPC::Locker_version.tar}
+
+@node Supported Systems, Installation, Obtaining Distribution, Top
+@section Supported Systems
+
+This version of IPC::Locker has been built and tested on:
+
+@itemize @bullet
+@item sparc-sun-solaris2.5.1
+@end itemize
+
+It should run on any system with perl and TCP/IP socketing.
+
+@node Installation,  , Supported Systems, Top
+@section Installation
+
+@enumerate
+@item
+@code{cd} to the directory containing this INSTALL notice.
+
+@item
+Type @samp{perl Makefile.PL} to configure IPC::Locker for your system.
+
+@item
+Type @samp{make} to compile IPC::Locker.
+
+@item
+Type @samp{make install} to install the programs and any data files and
+documentation.
+
+@item
+You may wish to install @samp{lockerd} in a init.rc file so that it is run at
+system startup.
+
+@end enumerate
+
+

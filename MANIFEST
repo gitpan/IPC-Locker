@@ -1,0 +1,9 @@
+COPYING
+README
+MANIFEST
+Makefile.PL
+Locker/Server.pm
+Locker.pm
+readme.texi
+test.pl
+lockerd
