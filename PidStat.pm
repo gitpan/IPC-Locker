@@ -1,22 +1,17 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidStat.pm,v 1.7 2003/07/24 17:25:43 wsnyder Exp $
+# $Id: PidStat.pm,v 1.10 2004/01/27 18:51:58 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2001 by Wilson Snyder.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
+# Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # 
-# If you do not have a copy of the GNU General Public License write to
-# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
-# MA 02139, USA.
 ######################################################################
 
 package IPC::PidStat;
@@ -38,7 +33,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.420';
+$VERSION = '1.430';
 
 ######################################################################
 #### Creator
@@ -149,7 +144,7 @@ sub local_pid_exists {
 
 =head1 NAME
 
-IPC::PidStat - Process ID existance test
+IPC::PidStat - Process ID existence test
 
 =head1 SYNOPSIS
 
@@ -193,7 +188,7 @@ returned.
 =item recv_stat()
 
 Blocks waiting for any return from the server.  Returns undef if none is
-found, or a 2 element array with the PID and existance flag.  Generally
+found, or a 2 element array with the PID and existence flag.  Generally
 this would be called inside a IO::Select loop.
 
 =back

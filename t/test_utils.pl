@@ -1,6 +1,10 @@
 #!/usr/local/bin/perl -w
-# $Revision: 1.1 $$Date: 2002/08/22 14:31:51 $$Author: wsnyder $
-#DESCRIPTION: Perl ExtUtils: Common routines required by package tests
+# $Revision: 1.2 $$Date: 2003/09/22 19:30:51 $$Author: wsnyder $
+# DESCRIPTION: Perl ExtUtils: Common routines required by package tests
+#
+# Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 
 use IO::File;
 use IO::Socket;

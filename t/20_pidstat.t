@@ -1,8 +1,12 @@
 #!/usr/local/bin/perl -w
-#$Id: 20_pidstat.t,v 1.5 2003/07/24 17:25:43 wsnyder Exp $
+# $Id: 20_pidstat.t,v 1.6 2003/09/22 19:30:51 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
+#
+# Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 
 use lib "./blib/lib";
 use Test;

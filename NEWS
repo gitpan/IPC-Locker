@@ -1,10 +1,13 @@
 IPC::Locker NEWS --  history of user-visible changes.
-Copyright (C) 2001 Wilson Snyder.
 See the end for copying conditions.
 
 The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
+
+* Changes in IPC::Locker 1.430 1/27/2004
+
+****	Warn about non-root pidstatd initialization.
 
 * Changes in IPC::Locker 1.420 7/24/2003
 
@@ -73,11 +76,13 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.18 2003/07/24 17:25:43 wsnyder Exp $
+$Id: NEWS,v 1.20 2004/01/27 18:51:58 wsnyder Exp $
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2001 Wilson Snyder
+   Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+   you can redistribute it and/or modify it under the terms of either the GNU
+   General Public License or the Perl Artistic License.
 
    See the README file included with this file for licencing information.
 

@@ -1,6 +1,11 @@
 #!/bin/sh
-# $Id: pidstatd,v 1.2 2002/07/28 20:26:35 wsnyder Exp $
+# $Id: pidstatd,v 1.4 2003/11/14 21:25:43 wsnyder Exp $
+# DESCRIPTION: Sample file to place in /etc/init.d to start the daemon
 # Distributed with IPC::Locker
+#
+# Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 
 state=$1
 
@@ -12,8 +17,11 @@ fi
 case $state in
   start)
         echo starting /usr/local/bin/pidstatd if present
-        # Alas, only root can do kill 0's  
-        [ -f /usr/local/bin/pidstatd ] && su root -c /usr/local/bin/pidstatd &
+	if [ $EUID != 0 ]; then
+	    echo "Run as root, only root can do kill 0's"  
+	    exit 10
+	fi
+        [ -f /usr/local/bin/pidstatd ] && /usr/local/bin/pidstatd &
         ;;
   stop)
         if test "x`pidof -o $$ -o $PPID -x pidstatd`" != x; then

@@ -1,22 +1,17 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.30 2003/07/24 17:25:43 wsnyder Exp $
+# $Id: Locker.pm,v 1.33 2004/01/27 18:51:58 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2001 by Wilson Snyder.
+# Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
-# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
-# If you do not have a copy of the GNU General Public License write to
-# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
-# MA 02139, USA.
+#
 ######################################################################
 
 =head1 NAME
@@ -77,7 +72,7 @@ Remove current locker for the given lock.
 =item owner ([parameter=>value ...]);
 
 Returns a string of who has the lock or undef if not currently .  Note that
-this information is not atomic, and may change asyncronously; do not use
+this information is not atomic, and may change asynchronously; do not use
 this to tell if the lock will be available, to do that, try to obtain the
 lock and then release it if you got it.
 
@@ -145,7 +140,7 @@ first argument is self.  Defaults to a croak message.
 =item timeout
 
 The maximum time in seconds that the lock may be held before being forced
-open, passed to the server when the lock is created.  Thus if the requestor
+open, passed to the server when the lock is created.  Thus if the requester
 dies, the lock will be released after that amount of time.  Zero disables
 the timeout.  Defaults to 10 minutes.
 
@@ -202,7 +197,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.420';
+$VERSION = '1.430';
 
 ######################################################################
 #### Useful Globals

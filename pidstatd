@@ -1,23 +1,18 @@
 #!/usr/local/bin/perl -Tw
 # pidstatd - distributed lock handler for perl IPC::Locker
-# $Id: pidstatd,v 1.5 2003/07/24 17:25:43 wsnyder Exp $
+# $Id: pidstatd,v 1.7 2003/11/18 15:56:02 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
-# This program is Copyright 2001 by Wilson Snyder.
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of either the GNU General Public License or the
-# Perl Artistic License.
+# Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+# you can redistribute it and/or modify it under the terms of either the GNU
+# General Public License or the Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 # 
-# If you do not have a copy of the GNU General Public License write to
-# the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
-# MA 02139, USA.
 ######################################################################
 
 require 5.004;
@@ -78,14 +73,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: pidstatd,v 1.5 2003/07/24 17:25:43 wsnyder Exp $ ', "\n";
+    print '$Id: pidstatd,v 1.7 2003/11/18 15:56:02 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: pidstatd,v 1.5 2003/07/24 17:25:43 wsnyder Exp $ ';
+    print 'Version: $Id: pidstatd,v 1.7 2003/11/18 15:56:02 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }
@@ -102,7 +97,7 @@ __END__
 
 =head1 NAME
 
-pidstatd - Determine if process ID is running for perl IPC::Locker
+pidstatd - Determine if process ID is running for Perl IPC::Locker
 
 =head1 SYNOPSIS
 
