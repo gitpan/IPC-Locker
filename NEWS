@@ -6,9 +6,18 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in IPC::Locker 1.420 7/24/2003
+
+**	Added pidstat tool for querying the daemon. [by Stephen Adkins]
+
+***	Added pid_request_recv method.
+
+***	Added pid=># parameter for setting PID to track. [Stephen Adkins]
+
+
 * Changes in IPC::Locker 1.410 1/31/2003
 
-***	Added lock_list() method.  [written by Anton Berezin]
+***	Added lock_list() method.  [by Anton Berezin]
 
 
 * Changes in IPC::Locker 1.401 8/22/2002
@@ -64,7 +73,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.16 2003/01/31 16:34:58 wsnyder Exp $
+$Id: NEWS,v 1.18 2003/07/24 17:25:43 wsnyder Exp $
 ----------------------------------------------------------------------
 Copyright information:
 

@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidStat.pm,v 1.6 2003/01/31 16:34:58 wsnyder Exp $
+# $Id: PidStat.pm,v 1.7 2003/07/24 17:25:43 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -38,7 +38,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.410';
+$VERSION = '1.420';
 
 ######################################################################
 #### Creator
@@ -50,6 +50,7 @@ sub new {
     my $class = ref($proto) || $proto;
     my $self = {
 	socket=>undef,	# IO::Socket handle of open socket
+	tries=>5,
 	#Documented
 	port=>$IPC::Locker::Default_PidStat_Port,
 	stat_cb=>sub {},
@@ -100,6 +101,22 @@ sub recv_stat {
     }
     return undef;
 }
+
+sub pid_request_recv {
+    my $self = shift;
+    my @params = @_;
+    for (my $try=0; $try<$self->{tries}; $try++) {
+	$self->pid_request(@params);
+	my @recved;
+	eval {
+	    local $SIG{ALRM} = sub { die "Timeout\n"; };
+	    alarm(1);
+	    @recved = $self->recv_stat();
+	};
+	return @recved if defined $recved[0];
+    }
+    return undef;
+}    
 
 ######################################################################
 #### Utilities
@@ -166,6 +183,12 @@ Creates a new object for later use.  See the PARAMETERS section.
 
 Sends a request to the specified host's server to see if the specified PID
 exists.
+
+=item pid_request_recv (host=>$host, pid=>$pid);
+
+Calls pid_request and returns the recv_stat reply.  If the response fails
+to return in one second, it is retried up to 5 times, then undef is
+returned.
 
 =item recv_stat()
 

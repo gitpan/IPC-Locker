@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -Tw
 # pidstatd - distributed lock handler for perl IPC::Locker
-# $Id: pidstatd,v 1.3 2002/08/04 18:34:09 wsnyder Exp $
+# $Id: pidstatd,v 1.5 2003/07/24 17:25:43 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -22,10 +22,10 @@
 
 require 5.004;
 use lib './blib/lib';	# testing
-use English;
 use Getopt::Long;
 use Pod::Text;
 use IPC::PidStat::PidServer;
+use strict;
 
 BEGIN { $ENV{PATH} = '/usr/ucb:/bin' }	# Secure path
 
@@ -78,14 +78,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: pidstatd,v 1.3 2002/08/04 18:34:09 wsnyder Exp $ ', "\n";
+    print '$Id: pidstatd,v 1.5 2003/07/24 17:25:43 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: pidstatd,v 1.3 2002/08/04 18:34:09 wsnyder Exp $ ';
+    print 'Version: $Id: pidstatd,v 1.5 2003/07/24 17:25:43 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }
@@ -125,12 +125,15 @@ for PIDs that no longer exists.
 =over 4
 
 =item --help
+
 Displays this message and program version and exits.
 
 =item --port
+
 Specifies the port number to be used.
 
 =item --version
+
 Displays program version and exits.
 
 =back

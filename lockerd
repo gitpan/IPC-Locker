@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -Tw
 # lockerd - distributed lock handler for perl IPC::Locker
-# $Id: lockerd,v 1.16 2002/08/04 18:34:09 wsnyder Exp $
+# $Id: lockerd,v 1.17 2003/05/08 20:13:25 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -81,14 +81,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd,v 1.16 2002/08/04 18:34:09 wsnyder Exp $ ', "\n";
+    print '$Id: lockerd,v 1.17 2003/05/08 20:13:25 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd,v 1.16 2002/08/04 18:34:09 wsnyder Exp $ ';
+    print 'Version: $Id: lockerd,v 1.17 2003/05/08 20:13:25 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }
@@ -125,16 +125,20 @@ IPC::Locker package.
 =over 4
 
 =item --help
+
 Displays this message and program version and exits.
 
 =item --port
+
 Specifies the port number to be used.
 
 =item --path
+
 Specifies that UNIX fifo will be used for communications with clients and
 the path to the fifo.
   
 =item --version
+
 Displays program version and exits.
 
 =back

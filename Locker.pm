@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.28 2003/01/31 16:34:58 wsnyder Exp $
+# $Id: Locker.pm,v 1.30 2003/07/24 17:25:43 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -117,6 +117,10 @@ and the first free lock will be returned.
 Return a list of lock and lock owner pairs.  (You can assign this to a hash
 for easier parsing.)
 
+=item pid
+
+The process ID that owns the lock, defaults to the current process id.
+
 =item print_broke
 
 A function to print a message when the lock is broken.  The only argument
@@ -198,7 +202,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.410';
+$VERSION = '1.420';
 
 ######################################################################
 #### Useful Globals
@@ -218,13 +222,13 @@ sub new {
     my $proto = shift;
     my $class = ref($proto) || $proto;
     my $hostname = hostname() || "localhost";
-    my $user = hostname() . "_".$$."_" . ($ENV{USER} || "");
     my $self = {
 	#Documented
 	host=>'localhost', port=>$Default_Port,
 	lock=>['lock'],
 	timeout=>60*10, block=>1,
-	user=>$user,
+	pid=>$$,
+	#user=>		# below
 	hostname=>$hostname,
 	autounlock=>0,
 	verbose=>$Debug,
@@ -236,6 +240,7 @@ sub new {
 	#Internal
 	locked=>0,
 	@_,};
+    $self->{user} ||= hostname() . "_".$self->{pid}."_" . ($ENV{USER} || "");
     foreach (_array_or_one($self->{lock})) {
 	($_ !~ /\s/) or carp "%Error: Lock names cannot contain whitespace: $_\n";
     }

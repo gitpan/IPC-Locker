@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#$Id: 20_pidstat.t,v 1.4 2002/08/22 14:31:51 wsnyder Exp $
+#$Id: 20_pidstat.t,v 1.5 2003/07/24 17:25:43 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -68,16 +68,7 @@ sub check_stat {
     # certain.
 
     my $pid_pre_exists = kill(0,$pid);
-    my @recved;
-    for (my $try=0; $try<$tries; $try++) {
-	$exister->pid_request(pid=>$pid);
-	eval {
-	    local $SIG{ALRM} = sub { die "Timeout\n"; };
-	    alarm(1);
-	    @recved = $exister->recv_stat();
-	};
-	last if defined $recved[0];
-    }
+    my @recved = $exister->pid_request_recv(pid=>$pid);
     my $pid_post_exists = kill(0,$pid);  # Test again, may have changed state when request in flight.
     if (!defined $recved[0]) {
 	warn "\n%Error: Null response for pid $pid: @recved,";
