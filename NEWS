@@ -1,0 +1,29 @@
+IPC::Locker NEWS --  history of user-visible changes.
+Copyright (C) 2000 Wilson Snyder.
+See the end for copying conditions.
+
+The contributors that suggested a given feature is shown in [].
+	
+This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
+
+* Changes in IPC::Locker 1.12 5/24/2000
+
+**	Added support for Unix named sockets
+	[Written by kaspar@lifosa.com]
+
+***	Fixed bug where lock expiration timer would fire at wrong time
+
+
+----------------------------------------------------------------------
+$Id: NEWS,v 1.1 2000/05/24 14:20:42 wsnyder Exp $
+----------------------------------------------------------------------
+Copyright information:
+
+Copyright (C) 2000 Wilson Snyder
+
+   See the README file included with this file for licencing information.
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:

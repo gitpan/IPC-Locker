@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.2 1999/06/02 17:30:08 wsnyder Exp $
+# $Id: Makefile.PL,v 1.3 2000/01/21 14:45:41 wsnyder Exp $
 
 use ExtUtils::MakeMaker;
 use Carp;

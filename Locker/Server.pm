@@ -1,6 +1,6 @@
 # IPC::Locker.pm -- distributed lock handler
 
-# RCS Status      : $Id: Server.pm,v 1.4 1999/08/23 14:21:42 wsnyder Exp $
+# RCS Status      : $Id: Server.pm,v 1.8 2000/05/24 14:25:09 wsnyder Exp $
 # Author          : Wilson Snyder <wsnyder@world.std.com>
 
 ######################################################################
@@ -45,9 +45,13 @@ Starts the server.  Does not return.
 
 =head1 PARAMETERS
 
+=item family
+
+The family of transport to use, either INET or UNIX.  Defaults to INET.
+
 =item port
 
-The port number of the lock server.  Defaults to 1751.
+The port number (INET) or name (UNIX) of the lock server.  Defaults to 1751.
 
 =head1 SEE ALSO
 
@@ -73,9 +77,10 @@ require Exporter;
 use IPC::Locker;
 use Socket;
 use IO::Socket;
+use IO::Select;
 
 use strict;
-use vars qw($VERSION $Debug %Locks);
+use vars qw($VERSION $Debug %Locks %Clients $Select $Interrupts);
 use Carp;
 
 ######################################################################
@@ -84,7 +89,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.11';
+$VERSION = '1.12';
 
 ######################################################################
 #### Globals
@@ -95,7 +100,7 @@ $VERSION = '1.11';
 ######################################################################
 #### Creator
 
-sub start_server {
+sub new {
     # Establish the server
     @_ >= 1 or croak 'usage: IPC::Locker->new ({options})';
     my $proto = shift;
@@ -103,31 +108,105 @@ sub start_server {
     my $self = {
 	#Documented
 	port=>$IPC::Locker::Default_Port,
+	family=>$IPC::Locker::Default_Family,
 	@_,};
     bless $self, $class;
+    my $param = {@_};
+    if (defined $param->{family} && $param->{family} eq 'UNIX'
+	&& !exists($param->{port})) {
+    	$self->{port} = $IPC::Locker::Default_UNIX_port;
+    }
+    return $self;
+}
+
+sub start_server {
+    my $self = shift;
 
     # Open the socket
     print "Listening on $self->{port}\n" if $Debug;
-    my $server = IO::Socket::INET->new( Proto     => 'tcp',
-					LocalPort => $self->{port},
+    my $server;
+    if ($self->{family} eq 'INET') {
+    	$server = IO::Socket::INET->new( Proto     => 'tcp',
+					 LocalPort => $self->{port},
+					 Listen    => SOMAXCONN,
+					 Reuse     => 1)
+	    or die "$0: Error, socket: $!";
+    } elsif ($self->{family} eq 'UNIX') {
+    	$server = IO::Socket::UNIX->new(Local => $self->{port},
 					Listen    => SOMAXCONN,
-					Reuse     => 1)
-	or die "$0: Error, socket: $!";
+					)
+	    or die "$0: Error, socket: $!\n port=$self->{port}=";
+	$self->{unix_socket_created}=1;
+    } else {
+    	die "IPC::Locker::Server:  What transport do you want to use?";
+    }
+    $Select = new IO::Select( $server );
 
-    $SIG{ALRM} = \&sig_alarm;
-
-    while (1) {
-	while (my $clientfh = $server->accept()) {
-	    alarm (0);
-	    print $clientfh "HELLO\n" if $Debug;
-	    #
-	    my $clientvar = {socket=>$clientfh,
-			     delayed=>0,
-			 };
-	    client_service ($clientvar);
-	    recheck_locks();
+    %Clients = ();
+    my $timeout=2;
+    #$SIG{ALRM} = \&sig_alarm;
+    $SIG{INT}= \&sig_INT;
+    
+    while (!$Interrupts) {
+    	my ($r, $w, $e, $fh, @a);
+	$r = $w = $e = 0;
+	print "Pre-Select $!\n" if $Debug;
+	$! = 0;
+    	@a = IO::Select::select($Select, undef, $Select, $timeout); 
+	($r, $w, $e) = @a;
+	print "Select $#a $#$r $#$w $#$e $! \n" if $Debug;
+        foreach $fh (@$r) {
+            if ($fh == $server) {
+        	# Create a new socket
+        	my $clientfh = $server->accept;
+        	$Select->add($clientfh);
+		print $clientfh "HELLO\n" if $Debug;
+		#
+		my $clientvar = {socket=>$clientfh,
+				 delayed=>0,
+				 input=>'',
+			     };
+		$Clients{$clientfh}=$clientvar;
+	    } else {
+		my $data = '';
+		my $rc = recv($fh, $data, 1000, 0);
+		if ($data eq '') {
+        	    # we have finished with the socket
+		    delete $Clients{$fh};
+        	    $Select->remove($fh);
+        	    $fh->close;
+ 		} else {
+		    my $line = $Clients{$fh}->{input}.$data;
+		    my @lines = split /\n/, $line;
+		    if ($line =~ /\n$/) {
+		    	$Clients{$fh}->{input}='';
+			print "Nothing Left\n" if $Debug;
+		    } else {
+		    	$Clients{$fh}->{input}=unshift @lines;
+			print "Left: ".$Clients{$fh}->{input}."\n" if $Debug;
+		    }
+		    unshift(@{$Clients{$fh}->{inputlines}}, @lines);
+		    client_service($Clients{$fh});
+		    recheck_locks();
+		}
+	    }
 	}
-	sleep 1;
+	foreach $fh (@$e) {
+        	# we have finished with the socket
+		delete $Clients{$fh};
+        	$Select->remove($fh);
+        	$fh->close;
+        }
+	recheck_locks();
+	foreach my $cl (values %Clients) {
+	    if ($cl->{locked}){
+	    	client_service ($cl);
+	    }
+	}
+	$timeout = alarm_time();
+	if (!$timeout){
+	    $timeout = 2000;
+	}
     }
 }
 
@@ -139,10 +218,10 @@ sub client_service {
     # Loop getting commands from a specific client
     my $clientvar = shift || die;
     
-    while (1) {
-	my $clientfh = $clientvar->{socket};
-	last if (!defined $clientfh);
-	last if (!defined (my $line = <$clientfh>));
+    my $clientfh = $clientvar->{socket};
+    my $line;
+    
+    while (defined($line = shift @{$clientvar->{inputlines}})) {
 	chomp $line;
 	print "REQ $line\n" if $Debug;
 	$clientvar->{user} = $1 if ($line =~ /^user\s+(\S*)$/m);
@@ -156,13 +235,16 @@ sub client_service {
 	die "restart"              if ($line =~ /^RESTART$/m);
 	if ($line =~ /^LOCK$/m) {
 	    my $wait = client_lock ($clientvar);
+	    print "Wait= $wait\n" if $Debug;
 	    last if $wait;
 	}
 	if ($line =~ /^EOF$/m) {
+	    delete $Clients{$clientvar->{socket}};
+	    $Select->remove($clientvar->{socket});
 	    $clientvar->{socket}->close();
 	    $clientvar->{socket} = undef;
 	    undef $clientvar;
-	    last;
+	    last; 
 	}
     }
 }
@@ -191,19 +273,25 @@ sub client_lock {
 	# Already locked by this guy?
 	last if ($locki->{owner} eq $clientvar->{user} && $locki->{locked});
 
-	# Non blocking?
-	last if (!$clientvar->{block} && $locki->{locked} && !defined $locki->{waiters}[0]);
-
+	if (!$clientvar->{block} && $locki->{locked}) {
+	    last;
+	} else {
+	    push @{$locki->{waiters}}, $clientvar;
+	}
+	
 	if ($locki->{locked}) {
 	    $clientvar->{told_locked} = 1;
 	    client_send ($clientvar, "print_waiting $locki->{owner}\n");
+	} else {
+	    locki_lock($locki);
+    	    last if ($locki->{owner} eq $clientvar->{user});
 	}
 
 	# Either need to wait for timeout, or someone else to return key
-	push @{$locki->{waiters}}, $clientvar;
 	return 1;	# Exit loop and check if can lock
     }
     client_status ($clientvar);
+    0;
 }
 
 sub client_break {
@@ -226,7 +314,8 @@ sub client_unlock {
 	locki_unlock ($locki);
     } else {
 	# Doesn't hold lock but might be waiting for it.
-	for (my $n=0; $n <= (length @{$locki->{waiters}}); $n++) {
+	print "Waiter count: ".$#{$locki->{waiters}}."\n" if $Debug;
+	for (my $n=0; $n <= $#{$locki->{waiters}}; $n++) {
 	    if ($locki->{waiters}[$n]{user} eq $clientvar->{user}) {
 		print "Dewait     $locki->{lock} User $clientvar->{user}\n" if $Debug;
 		splice @{$locki->{waiters}}, $n, 1;
@@ -246,7 +335,7 @@ sub client_send {
     print "RESP $clientfh '$msg" if $Debug;
 
     local $SIG{PIPE} = 'IGNORE';
-    my $status = print $clientfh $msg;
+    my $status = send $clientfh,$msg,0 ;
     if ($? || !$status) {
 	warn "client_send hangup $clientfh $?" if $Debug;
 	undef $clientvar->{socket};
@@ -259,29 +348,23 @@ sub client_send {
 ######################################################################
 #### Alarm handler
 
-sub sig_alarm {
-    print "Alarm\n" if $Debug;
-    alarm(0);
-    $SIG{ALRM} = \&sig_alarm;
-    recheck_locks();
-    print "sig_alarm done\n" if $Debug;
+sub sig_INT {
+    $Interrupts++;
+    #$SIG{INT}= \&sig_INT;
+    0;
 }
 
-sub set_alarm {
+sub alarm_time {
     # Compute alarm interval and set
     my $time = time();
     my $timelimit = undef;
     foreach my $locki (values %Locks) {
 	if ($locki->{locked}) {
 	    $timelimit = $locki->{timelimit} if (!defined $timelimit
-						 || $locki->{timelimit} <= $time);
+				 || $locki->{timelimit} <= $timelimit);
 	}
     }
-    my $alarm = $timelimit ? ($timelimit - $time + 1) : 0;
-    if ($alarm > 0) {
-	print "Alarming in $alarm\n" if $Debug;
-	alarm ($alarm);
-    }
+    return $timelimit ? ($timelimit - $time + 1) : 0;
 }
 
 ######################################################################
@@ -292,7 +375,9 @@ sub locki_lock {
     # Give lock to next requestor that accepts it
     my $locki = shift || die;
 
+    print "Locki_lock:1:Waiter count: ".$#{$locki->{waiters}}."\n" if $Debug;
     while (my $clientvar = shift @{$locki->{waiters}}) {
+    	print "Locki_lock:2:Waiter count: ".$#{$locki->{waiters}}."\n" if $Debug;
 	$locki->{locked} = 1;
 	$locki->{owner} = $clientvar->{user};
 	$locki->{timelimit} = $clientvar->{timeout} + time();
@@ -316,7 +401,6 @@ sub locki_unlock {
 
 sub recheck_locks {
     # Main loop to see if any locks have changed state
-    alarm (0);	# So doesn't trigger in this loop
     my $time = time();
     foreach my $locki (values %Locks) {
 	if ($locki->{locked} && $locki->{timelimit} <= $time) {
@@ -327,7 +411,6 @@ sub recheck_locks {
 	    locki_lock ($locki);
 	}
     }
-    set_alarm();
 }
 
 sub locki_lookup {
@@ -342,6 +425,14 @@ sub locki_lookup {
 	};
     }
     return $Locks{$lockname};
+}
+
+sub DESTROY {
+    my $self = shift;
+    print "DESTROY\n" if $Debug;
+    if (($self->{family} eq 'UNIX') && $self->{unix_socket_created}){
+    	unlink $self->{port};
+    }
 }
 
 ######################################################################

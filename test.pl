@@ -1,6 +1,8 @@
-#$Id: test.pl,v 1.2 1999/08/23 14:21:42 wsnyder Exp $
+#$Id: test.pl,v 1.3 2000/05/24 14:20:42 wsnyder Exp $
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
+
+use lib "./blib/lib";
 
 ######################### We start with some black magic to print on failure.
 

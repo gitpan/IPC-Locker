@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -Tw
 # lockerd - distributed lock handler for perl IPC::Locker
 
-# RCS Status      : $Id: lockerd,v 1.7 1999/11/16 16:13:12 wsnyder Exp $
+# RCS Status      : $Id: lockerd,v 1.9 2000/05/24 14:20:42 wsnyder Exp $
 # Author          : Wilson Snyder <wsnyder@world.std.com>
 
 ################ Introduction ################
@@ -49,7 +49,9 @@ $result = &GetOptions (
 		       "help"		=> \&usage,
 		       "debug"		=> \&debug,
 		       "version"	=> \&version,
-		       "port=i"		=> sub {$server_params{port} = shift;}
+		       "port=i"		=> sub {$server_params{port} = shift;},
+		       "path=s"		=> sub {$server_params{port} = $_[1];
+    	    	    			        $server_params{family}='UNIX';},
 		       );
 
 if (!$result) { &usage(); }
@@ -58,7 +60,7 @@ if (!$result) { &usage(); }
 while (1) {
     print "Starting server\n" if $Debug;
     unless ($pid = fork) {
-        IPC::Locker::Server->start_server (%server_params);
+        IPC::Locker::Server->new(%server_params)->start_server ();
 	exit(0);
     }
     waitpid($pid,0);
@@ -73,14 +75,14 @@ exit (0);
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd,v 1.7 1999/11/16 16:13:12 wsnyder Exp $ ', "\n";
+    print '$Id: lockerd,v 1.9 2000/05/24 14:20:42 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd,v 1.7 1999/11/16 16:13:12 wsnyder Exp $ ';
+    print 'Version: $Id: lockerd,v 1.9 2000/05/24 14:20:42 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }
@@ -104,6 +106,7 @@ lockerd - Distributed lock handler for perl IPC::Locker
 B<lockerd>
 [ B<--help> ]
 [ B<--port=>I<port> ]
+[ B<--path=>I<fifo_path> ]
 [ B<--version> ]
 
 =head1 DESCRIPTION
@@ -121,6 +124,10 @@ Displays this message and program version and exits.
 =item --port
 Specifies the port number to be used.
 
+=item --path
+Specifies that UNIX fifo will be used for communications with clients and
+the path to the fifo.
+  
 =item --version
 Displays program version and exits.
 

@@ -1,6 +1,6 @@
 # IPC::Locker.pm -- distributed lock handler
 
-# RCS Status      : $Id: Locker.pm,v 1.7 1999/08/23 14:21:41 wsnyder Exp $
+# RCS Status      : $Id: Locker.pm,v 1.10 2000/05/24 14:20:42 wsnyder Exp $
 # Author          : Wilson Snyder <wsnyder@world.std.com>
 
 ######################################################################
@@ -89,6 +89,10 @@ Boolean flag, true indicates wait for the lock when calling lock() and die
 if a error occurs.  False indicates to just return false.  Defaults to
 true.
 
+=item family
+
+The family of transport to use, either INET or UNIX.  Defaults to INET.
+
 =item host
 
 The name of the host containing the lock server.  It may also be a array
@@ -96,7 +100,11 @@ of hostnames, where if the first one is down, subsequent ones will be tried.
 
 =item port
 
-The port number of the lock server.  Defaults to 1751.
+The port number (INET) or name (UNIX) of the lock server.  Defaults to 1751.
+
+=item lock
+
+The name of the lock.
 
 =item print_broke
 
@@ -162,7 +170,7 @@ use Socket;
 use IO::Socket;
 
 use strict;
-use vars qw($VERSION $Debug $Default_Port);
+use vars qw($VERSION $Debug $Default_Port $Default_Family $Default_UNIX_port);
 use Carp;
 
 ######################################################################
@@ -171,12 +179,14 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.11';
+$VERSION = '1.12';
 
 ######################################################################
 #### Useful Globals
 
 $Default_Port = 1751;
+$Default_Family = 'INET';
+$Default_UNIX_port = '/var/locks/lockerd';
 
 ######################################################################
 #### Creator
@@ -197,6 +207,7 @@ sub new {
 	print_obtained=>sub {my $self=shift; print "Obtained lock at ".(scalar(localtime))."\n" if $self->{verbose};},
 	print_waiting=>sub {my $self=shift; print "Waiting for lock from $_[0] at ".(scalar(localtime))."\n" if $self->{verbose};},
 	print_down=>undef,
+	family=>'INET',
 	#Internal
 	locked=>0,
 	@_,};
@@ -275,32 +286,41 @@ sub request {
 	       ."$cmd\n");
     print "REQ $req\n" if $Debug;
 
-    my @hostlist = ($self->{host});
-    @hostlist = @{$self->{host}} if (ref($self->{host}) eq "ARRAY");
-
     my $fh;
-    foreach my $host (@hostlist) {
-	print "Trying host $host\n" if $Debug;
-	$fh = IO::Socket::INET->new( Proto     => "tcp",
-				     PeerAddr  => $host,
-				     PeerPort  => $self->{port},
-				     );
-	if ($fh) {
-	    if ($host ne $hostlist[0]) {
-		# Reorganize host list so whoever responded is first
-		# This is so if we grab a lock we'll try to return it to the same host
-		$self->{host} = [$host, @hostlist];
+    if ($self->{family} eq 'INET'){
+	my @hostlist = ($self->{host});
+	@hostlist = @{$self->{host}} if (ref($self->{host}) eq "ARRAY");
+
+	foreach my $host (@hostlist) {
+	    print "Trying host $host\n" if $Debug;
+	    $fh = IO::Socket::INET->new( Proto     => "tcp",
+					 PeerAddr  => $host,
+					 PeerPort  => $self->{port},
+					 );
+	    if ($fh) {
+		if ($host ne $hostlist[0]) {
+		    # Reorganize host list so whoever responded is first
+		    # This is so if we grab a lock we'll try to return it to the same host
+		    $self->{host} = [$host, @hostlist];
+		}
+		last;
 	    }
-	    last;
 	}
-    }
-    if (!$fh) {
-	if (defined $self->{print_down}) {
-	    &{$self->{print_down}} ($self);
-	    return;
+	if (!$fh) {
+	    if (defined $self->{print_down}) {
+		&{$self->{print_down}} ($self);
+		return;
+	    }
+	    croak "%Error: Can't locate lock server on " . (join " or ", @hostlist), " $self->{port}\n"
+		. "\tYou probably need to run lockerd\n$self->request(): Stopped";
 	}
-	croak "%Error: Can't locate lock server on " . (join " or ", @hostlist), " $self->{port}\n"
-	    . "\tYou probably need to run lockerd\n$self->request(): Stopped";
+    } elsif ($self->{family} eq 'UNIX') {
+	$fh = IO::Socket::UNIX->new( Peer => $self->{port},
+				     )
+	    or croak "%Error: Can't locate lock server on $self->{port}.\n"
+		. "\tYou probably need to run lockerd\n$self->request(): Stopped";
+    } else {
+    	croak "IPC::Locker->request(): No or wrong transport specified.";
     }
     
     print $fh "$req\nEOF\n";
