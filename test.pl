@@ -1,4 +1,4 @@
-#$Id: test.pl,v 1.4 2001/02/09 15:43:46 wsnyder Exp $
+#$Id: test.pl,v 1.5 2001/11/08 19:05:15 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -39,15 +39,30 @@ print (($lock->locked()) ? "ok 4\n" : "not ok 4\n");
 
 # 5: Lock owner
 print (($lock->owner()) ? "ok 5\n" : "not ok 5\n");
+# 6: Lock name
+print (($lock->lock_name() eq 'lock') ? "ok 6\n" : "not ok 6\n");
 
-# 6: Lock obtain and fail
+# 7: Lock obtain and fail
 print ((!defined( IPC::Locker->lock(block=>0, user=>'alternate') ))
-       ? "ok 6\n" : "not ok 6\n");
+       ? "ok 7\n" : "not ok 7\n");
 
-# 7: Lock release
-print (($lock->unlock()) ? "ok 7\n" : "not ok 7\n");
+# 8: Get lock by another name
+print (($lock2 = new IPC::Locker(timeout=>10,
+				 lock=>[qw(lock lock2)],
+				 user=>'alt2',
+				 )) ? "ok 8\n" : "not ok 8\n");
+$lock2->lock();
+print (($lock2 && $lock2->locked()
+	&& $lock2->lock_name() eq "lock2") ? "ok 9\n" : "not ok 9\n");
 
-# 8: Destructor
+# 10: Yet another dual lock obtain and fail
+print ((!defined( IPC::Locker->lock(block=>0, user=>'alt3',
+				    lock=>[qw(lock lock2)],) ))
+       ? "ok 10\n" : "not ok 10\n");
+
+# 11: Lock release
+print (($lock->unlock()) ? "ok 11\n" : "not ok 11\n");
+
+# 12: Destructor
 undef $lock;
-print "ok 8\n";
-
+print "ok 12\n";

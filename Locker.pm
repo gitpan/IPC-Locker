@@ -1,11 +1,9 @@
 # IPC::Locker.pm -- distributed lock handler
-
-# RCS Status      : $Id: Locker.pm,v 1.15 2001/02/13 17:37:33 wsnyder Exp $
-# Author          : Wilson Snyder <wsnyder@wsnyder.org>
-
+# $Id: Locker.pm,v 1.18 2001/11/15 14:14:00 wsnyder Exp $
+# Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2000 by Wilson Snyder.
+# This program is Copyright 2001 by Wilson Snyder.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
@@ -32,8 +30,8 @@ IPC::Locker - Distributed lock handler
   use IPC::Locker;
 
   my $lock = IPC::Locker->lock(lock=>'one_per_machine',
-				  host=>'example.std.com',
-				  port=>223);
+			       host=>'example.std.com',
+			       port=>223);
 
   if ($lock->lock()) { something; }
   if ($lock->locked()) { something; }
@@ -60,6 +58,10 @@ Try to obtain the lock, return the lock object if successful, else undef.
 =item locked ()
 
 Return true if the lock has been obtained.
+
+=item lock_name ()
+
+Return the name of the lock.
 
 =item unlock ()
 
@@ -105,7 +107,8 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 
 =item lock
 
-The name of the lock.
+The name of the lock.  This may also be a reference to an array of lock names,
+and the first free lock will be returned.
 
 =item print_broke
 
@@ -132,8 +135,8 @@ first argument is self.  Defaults to a croak message.
 
 The maximum time in seconds that the lock may be held before being forced
 open, passed to the server when the lock is created.  Thus if the requestor
-dies, the lock will be released after that amount of time.  Defaults to 10
-minutes.
+dies, the lock will be released after that amount of time.  Zero disables
+the timeout.  Defaults to 10 minutes.
 
 =item user
 
@@ -180,7 +183,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.14';
+$VERSION = '1.200';
 
 ######################################################################
 #### Useful Globals
@@ -201,7 +204,7 @@ sub new {
     my $self = {
 	#Documented
 	host=>'localhost', port=>$Default_Port,
-	lock=>'lock',
+	lock=>['lock'],
 	timeout=>60*10, block=>1,
 	user=>$user,
 	verbose=>$Debug,
@@ -213,6 +216,9 @@ sub new {
 	#Internal
 	locked=>0,
 	@_,};
+    foreach (_array_or_one($self->{lock})) {
+	($_ !~ /\s/) or carp "%Error: Lock names cannot contain whitespace: $_\n";
+    }
     bless $self, $class;
     return $self;
 }
@@ -274,6 +280,16 @@ sub owner {
     return $self->{owner};
 }
 
+sub lock_name {
+    my $self = shift; ($self) or croak 'usage: $self->lock_name()';
+    if (ref $self->{lock}
+	&& $#{$self->{lock}}<1) {
+	return $self->{lock}[0];
+    } else {
+	return $self->{lock};
+    }
+}
+
 ######################################################################
 ######################################################################
 #### Guts: Sending and receiving messages
@@ -281,10 +297,11 @@ sub owner {
 sub _request {
     my $self = shift;
     my $cmd = shift;
+
     my $req = ("user $self->{user}\n"
-	       ."lock $self->{lock}\n"
-	       ."block $self->{block}\n"
-	       ."timeout $self->{timeout}\n"
+	       ."locks ".join(' ',@{_array_or_one($self->{lock})})."\n"
+	       ."block ".($self->{block}||0)."\n"
+	       ."timeout ".($self->{timeout}||0)."\n"
 	       ."$cmd\n");
     print "REQ $req\n" if $Debug;
 
@@ -335,12 +352,23 @@ sub _request {
 	$self->{locked} = $args[0] if ($cmd eq "locked");
 	$self->{owner}  = $args[0] if ($cmd eq "owner");
 	$self->{error}  = $args[0] if ($cmd eq "error");
+	if ($cmd eq "lockname") {
+	    $self->{lock}   = [$args[0]];
+	    $self->{lock}   = $self->{lock}[0] if ($#{$self->{lock}}<1);  # Back compatible
+	}
 	&{$self->{print_obtained}} ($self,@args)  if ($cmd eq "print_obtained");
 	&{$self->{print_waiting}}  ($self,@args)  if ($cmd eq "print_waiting");
 	&{$self->{print_broke}}    ($self,@args)  if ($cmd eq "print_broke");
 	print "$1\n" if ($line =~ /^ECHO\s+(.*)$/ && $self->{verbose});  #debugging
     }
     $fh->close();
+}
+
+######################################################################
+
+sub _array_or_one {
+    return [$_[0]] if !ref $_[0];
+    return $_[0];
 }
 
 ######################################################################

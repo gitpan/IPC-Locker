@@ -1,17 +1,25 @@
 IPC::Locker NEWS --  history of user-visible changes.
-Copyright (C) 2000 Wilson Snyder.
+Copyright (C) 2001 Wilson Snyder.
 See the end for copying conditions.
 
 The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in IPC::Locker 1.200 11/15/2001
+
+**	Allow multiple lock names on lock requests,
+	and return the first one which becomes free. [Mike Lopresti]
+
+**	A zero timeout will disable timeouts.  [James FitzGibbon]
+
+
 * Changes in IPC::Locker 1.14 2/13/2000
 
 **	Changed default port to 'lockerd' which will look up the port
 	number in /etc/services.  If not found defaults to old 1751.
 
-***	Improved detection and recovery of deamon failures.
+***	Improved detection and recovery of daemon failures.
 
 
 * Changes in IPC::Locker 1.12 5/24/2000
@@ -23,11 +31,11 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.4 2001/02/13 17:37:34 wsnyder Exp $
+$Id: NEWS,v 1.7 2001/11/15 14:14:00 wsnyder Exp $
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2000 Wilson Snyder
+Copyright (C) 2001 Wilson Snyder
 
    See the README file included with this file for licencing information.
 

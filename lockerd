@@ -1,12 +1,10 @@
 #!/usr/local/bin/perl -Tw
 # lockerd - distributed lock handler for perl IPC::Locker
-
-# RCS Status      : $Id: lockerd,v 1.11 2001/02/13 15:11:13 wsnyder Exp $
-# Author          : Wilson Snyder <wsnyder@wsnyder.org>
-
+# $Id: lockerd,v 1.13 2001/11/15 14:14:00 wsnyder Exp $
+# Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
-# This program is Copyright 2000 by Wilson Snyder.
+# This program is Copyright 2001 by Wilson Snyder.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
@@ -83,14 +81,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd,v 1.11 2001/02/13 15:11:13 wsnyder Exp $ ', "\n";
+    print '$Id: lockerd,v 1.13 2001/11/15 14:14:00 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd,v 1.11 2001/02/13 15:11:13 wsnyder Exp $ ';
+    print 'Version: $Id: lockerd,v 1.13 2001/11/15 14:14:00 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }
@@ -119,7 +117,7 @@ B<lockerd>
 
 =head1 DESCRIPTION
 
-Lockerd will start a deamon to watch for and service connects by the perl
+Lockerd will start a daemon to watch for and service connects by the perl
 IPC::Locker package.
 
 =head1 ARGUMENTS

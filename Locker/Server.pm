@@ -1,11 +1,9 @@
 # IPC::Locker.pm -- distributed lock handler
-
-# RCS Status      : $Id: Server.pm,v 1.12 2001/02/13 17:37:37 wsnyder Exp $
-# Author          : Wilson Snyder <wsnyder@wsnyder.org>
-
+# $Id: Server.pm,v 1.14 2001/11/15 14:14:02 wsnyder Exp $
+# Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# This program is Copyright 2000 by Wilson Snyder.
+# This program is Copyright 2001 by Wilson Snyder.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
@@ -90,7 +88,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.14';
+$VERSION = '1.200';
 
 ######################################################################
 #### Globals
@@ -226,7 +224,7 @@ sub client_service {
 	chomp $line;
 	print "REQ $line\n" if $Debug;
 	$clientvar->{user} = $1 if ($line =~ /^user\s+(\S*)$/m);
-	$clientvar->{lock} = $1 if ($line =~ /^lock\s+(\S*)$/m);
+	$clientvar->{locks} = [split(/\s/,"$1 ")] if ($line =~ /^locks?\s+([^\n]*)$/m);
 	$clientvar->{block} = $1 if ($line =~ /^block\s+(\S*)$/m);
 	$clientvar->{timeout} = $1 if ($line =~ /^timeout\s+(\S*)$/m);
 	# Commands
@@ -260,15 +258,24 @@ sub client_close {
 sub client_status {
     # Send status of lock back to client
     my $clientvar = shift || die;
-    my $locki = locki_lookup ($clientvar->{lock});
-    $clientvar->{locked} = ($locki->{owner} eq $clientvar->{user})?1:0;
-    $clientvar->{owner} = $locki->{owner};
-    if ($clientvar->{locked} && $clientvar->{told_locked}) {
-	$clientvar->{told_locked} = 0;
-	client_send ($clientvar, "print_obtained\n");
+    my @totry = ($clientvar->{lock});
+    @totry = @{$clientvar->{locks}} if !defined $clientvar->{lock};
+    $clientvar->{locked} = 0;
+    $clientvar->{owner} = "";
+    foreach my $lockname (@totry) {
+	my $locki = locki_lookup ($lockname);
+	$clientvar->{locked} = ($locki->{owner} eq $clientvar->{user})?1:0;
+	$clientvar->{owner} = $locki->{owner};
+	$clientvar->{lock} = $locki->{lock};
+	if ($clientvar->{locked} && $clientvar->{told_locked}) {
+	    $clientvar->{told_locked} = 0;
+	    client_send ($clientvar, "print_obtained\n");
+	}
+	last if $clientvar->{locked};
     }
-    client_send ($clientvar, "owner $locki->{owner}\n");
+    client_send ($clientvar, "owner $clientvar->{owner}\n");
     client_send ($clientvar, "locked $clientvar->{locked}\n");
+    client_send ($clientvar, "lockname $clientvar->{lock}\n") if $clientvar->{locked};
     client_send ($clientvar, "error $clientvar->{error}\n") if $clientvar->{error};
     return client_send ($clientvar, "\n\n");
 }
@@ -276,27 +283,39 @@ sub client_status {
 sub client_lock {
     # Client wants this lock, return true if delayed transaction
     my $clientvar = shift || die;
-    my $locki = locki_lookup ($clientvar->{lock});
+    # Wait for a free lock
+  trial:
     while (1) {
-	# Already locked by this guy?
-	last if ($locki->{owner} eq $clientvar->{user} && $locki->{locked});
-
-	if (!$clientvar->{block} && $locki->{locked}) {
-	    last;
-	} else {
-	    push @{$locki->{waiters}}, $clientvar;
+	# Try all locks
+	foreach my $lockname (@{$clientvar->{locks}}) {
+	    print "**try1 $lockname\n" if $Debug;
+	    my $locki = locki_lookup ($lockname);
+	    # Already locked by this guy?
+	    last trial if ($locki->{owner} eq $clientvar->{user} && $locki->{locked});
+	    # Attempt to assign to us
+	    if (!$locki->{locked}) {
+		push @{$locki->{waiters}}, $clientvar;
+		locki_lock($locki);
+		#print "nl $lockname a $locki->{lock} b $clientvar->{lock}\n";
+		last trial if ($locki->{owner} eq $clientvar->{user});
+	    }
 	}
-	
-	if ($locki->{locked}) {
-	    $clientvar->{told_locked} = 1;
-	    client_send ($clientvar, "print_waiting $locki->{owner}\n");
-	} else {
-	    locki_lock($locki);
-    	    last if ($locki->{owner} eq $clientvar->{user});
+	# All locks busy
+	last trial if (!$clientvar->{block});
+	# It's busy, wait for them all
+	foreach my $lockname (@{$clientvar->{locks}}) {
+	    print "**try2 $lockname\n" if $Debug;
+	    my $locki = locki_lookup ($lockname);
+	    if ($locki->{locked}) {
+		push @{$locki->{waiters}}, $clientvar;
+		if (!$clientvar->{told_locked}) {
+		    $clientvar->{told_locked} = 1;
+		    client_send ($clientvar, "print_waiting $locki->{owner}\n");
+		}
+	    }
 	}
-
 	# Either need to wait for timeout, or someone else to return key
-	return 1;	# Exit loop and check if can lock
+	return 1;	# Exit loop and check if can lock later
     }
     client_status ($clientvar);
     0;
@@ -304,11 +323,13 @@ sub client_lock {
 
 sub client_break {
     my $clientvar = shift || die;
-    my $locki = locki_lookup ($clientvar->{lock});
-    if ($locki->{locked}) {
-	print "broke lock   $locki->{lock} User $clientvar->{user}\n" if $Debug;
-	client_send ($clientvar, "print_broke $locki->{owner}\n");
-	locki_unlock ($locki);
+    foreach my $lockname (@{$clientvar->{locks}}) {
+	my $locki = locki_lookup ($lockname);
+	if ($locki->{locked}) {
+	    print "broke lock   $locki->{locks} User $clientvar->{user}\n" if $Debug;
+	    client_send ($clientvar, "print_broke $locki->{owner}\n");
+	    locki_unlock ($locki);
+	}
     }
     client_status ($clientvar);
 }
@@ -316,17 +337,19 @@ sub client_break {
 sub client_unlock {
     # Client request to unlock the given lock
     my $clientvar = shift || die;
-    my $locki = locki_lookup ($clientvar->{lock});
-    if ($locki->{owner} eq $clientvar->{user}) {
-	print "Unlocked   $locki->{lock} User $clientvar->{user}\n" if $Debug;
-	locki_unlock ($locki);
-    } else {
-	# Doesn't hold lock but might be waiting for it.
-	print "Waiter count: ".$#{$locki->{waiters}}."\n" if $Debug;
-	for (my $n=0; $n <= $#{$locki->{waiters}}; $n++) {
-	    if ($locki->{waiters}[$n]{user} eq $clientvar->{user}) {
-		print "Dewait     $locki->{lock} User $clientvar->{user}\n" if $Debug;
-		splice @{$locki->{waiters}}, $n, 1;
+    foreach my $lockname (@{$clientvar->{locks}}) {
+	my $locki = locki_lookup ($lockname);
+	if ($locki->{owner} eq $clientvar->{user}) {
+	    print "Unlocked   $locki->{lock} User $clientvar->{user}\n" if $Debug;
+	    locki_unlock ($locki);
+	} else {
+	    # Doesn't hold lock but might be waiting for it.
+	    print "Waiter count: ".$#{$locki->{waiters}}."\n" if $Debug;
+	    for (my $n=0; $n <= $#{$locki->{waiters}}; $n++) {
+		if ($locki->{waiters}[$n]{user} eq $clientvar->{user}) {
+		    print "Dewait     $locki->{lock} User $clientvar->{user}\n" if $Debug;
+		    splice @{$locki->{waiters}}, $n, 1;
+		}
 	    }
 	}
     }
@@ -367,9 +390,10 @@ sub alarm_time {
     my $time = time();
     my $timelimit = undef;
     foreach my $locki (values %Locks) {
-	if ($locki->{locked}) {
-	    $timelimit = $locki->{timelimit} if (!defined $timelimit
-				 || $locki->{timelimit} <= $timelimit);
+	if ($locki->{locked} && $locki->{timelimit}) {
+	    $timelimit = $locki->{timelimit} if
+		(!defined $timelimit
+		 || $locki->{timelimit} <= $timelimit);
 	}
     }
     return $timelimit ? ($timelimit - $time + 1) : 0;
@@ -388,7 +412,12 @@ sub locki_lock {
     	print "Locki_lock:2:Waiter count: ".$#{$locki->{waiters}}."\n" if $Debug;
 	$locki->{locked} = 1;
 	$locki->{owner} = $clientvar->{user};
-	$locki->{timelimit} = $clientvar->{timeout} + time();
+	if ($clientvar->{timeout}) {
+	    $locki->{timelimit} = $clientvar->{timeout} + time();
+	} else {
+	    $locki->{timelimit} = 0;
+	}
+	$clientvar->{lock} = $locki->{lock};
 	print "Issuing $locki->{lock} $locki->{owner}\n" if $Debug;
 	if (client_status ($clientvar)) {
 	    # Worked ok
@@ -411,7 +440,9 @@ sub recheck_locks {
     # Main loop to see if any locks have changed state
     my $time = time();
     foreach my $locki (values %Locks) {
-	if ($locki->{locked} && $locki->{timelimit} <= $time) {
+	if ($locki->{locked}
+	    && $locki->{timelimit}
+	    && ($locki->{timelimit} <= $time)) {
 	    print "Timeout $locki->{lock} $locki->{owner}\n" if $Debug;
 	    locki_unlock ($locki);
 	}

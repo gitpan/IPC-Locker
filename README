@@ -1,9 +1,9 @@
-This is the IPC::Locker Perl Package.
+   This is the IPC::Locker Perl Package.
 
 Copyright
 =========
 
-   This package is Copyright 2000 by Wilson Snyder
+   This package is Copyright 2001 by Wilson Snyder
 <wsnyder@wsnyder.org>.
 
    You may distribute under the terms of either the GNU General Public
@@ -44,14 +44,16 @@ Supported Systems
 
    This version of IPC::Locker has been built and tested on:
 
-   * sparc-sun-solaris2.5.1
+   * i386-linux
+
+   * sparc-sun-solaris2.7
 
    It should run on any system with perl and TCP/IP socketing.
 
 Installation
 ============
 
-  1. `cd' to the directory containing this INSTALL notice.
+  1. `cd' to the directory containing this README notice.
 
   2. Type `perl Makefile.PL' to configure IPC::Locker for your system.
 
