@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Server.pm,v 1.19 2002/07/28 21:33:53 wsnyder Exp $
+# $Id: Server.pm,v 1.22 2002/08/22 15:01:53 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -7,9 +7,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -90,7 +88,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.400';
+$VERSION = '1.401';
 $Hostname = (hostname() || "localhost");
 
 ######################################################################
@@ -190,10 +188,10 @@ sub start_server {
 		    	$Clients{$fh}->{input}='';
 			print "Nothing Left\n" if $Debug;
 		    } else {
-		    	$Clients{$fh}->{input}=unshift @lines;
+		    	$Clients{$fh}->{input}=pop @lines;
 			print "Left: ".$Clients{$fh}->{input}."\n" if $Debug;
 		    }
-		    unshift(@{$Clients{$fh}->{inputlines}}, @lines);
+		    push(@{$Clients{$fh}->{inputlines}}, @lines);
 		    client_service($Clients{$fh});
 		    recheck_locks();
 		}

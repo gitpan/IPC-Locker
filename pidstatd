@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -Tw
 # pidstatd - distributed lock handler for perl IPC::Locker
-# $Id: pidstatd,v 1.2 2002/07/28 20:13:32 wsnyder Exp $
+# $Id: pidstatd,v 1.3 2002/08/04 18:34:09 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -8,9 +8,7 @@
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of either the GNU General Public License or the
-# Perl Artistic License, with the exception that it cannot be placed
-# on a CD-ROM or similar media for commercial distribution without the
-# prior approval of the author.
+# Perl Artistic License.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -80,14 +78,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: pidstatd,v 1.2 2002/07/28 20:13:32 wsnyder Exp $ ', "\n";
+    print '$Id: pidstatd,v 1.3 2002/08/04 18:34:09 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: pidstatd,v 1.2 2002/07/28 20:13:32 wsnyder Exp $ ';
+    print 'Version: $Id: pidstatd,v 1.3 2002/08/04 18:34:09 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }

@@ -1,55 +1,63 @@
 #!/usr/local/bin/perl -w
-#$Id: 20_pidstat.t,v 1.3 2002/07/28 21:33:53 wsnyder Exp $
+#$Id: 20_pidstat.t,v 1.4 2002/08/22 14:31:51 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
 
 use lib "./blib/lib";
+use Test;
 use strict;
-use vars qw ($Loaded %SLArgs);
+use vars qw (%SLArgs $Serv_Pid);
 
-%SLArgs = ();
+BEGIN { plan tests => 9 }
+BEGIN { require "t/test_utils.pl"; }
 
-######################### We start with some black magic to print on failure.
+END { kill 'TERM', $Serv_Pid; }
 
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
+#########################
+# Constructor
 
-BEGIN { $| = 1; print "1..8\n";
-	print "****NOTE****: You need './pidstatd &' running for this test!\n";
-    }
-
-END {print "not ok 1\n" unless $Loaded;}
 use IPC::PidStat;
 $IPC::PidStat::Debug=1;
-$Loaded = 1;
-print "ok 1\n";
+ok(1);
 
-######################### End of black magic.
-
+#########################
 # Static checks
-print +(IPC::PidStat::local_pid_exists($$) ? "ok 2\n" : "not ok 2\n");
-print +(!IPC::PidStat::local_pid_doesnt_exist($$) ? "ok 3\n" : "not ok 3\n");
+ok (IPC::PidStat::local_pid_exists($$));
+ok (!IPC::PidStat::local_pid_doesnt_exist($$));
 
-# Constructor
+#########################
+# Server Constructor
+
+use IPC::PidStat::PidServer;
+%SLArgs = (port=>socket_find_free(12345));
+
+if ($Serv_Pid = fork()) {
+} else {
+    IPC::PidStat::PidServer->new(%SLArgs)->start_server ();
+    exit(0);
+}
+ok (1);
+sleep(1); #Let server get established
+
+#########################
+# User Constructor
+
 my $exister = new IPC::PidStat
     (%SLArgs,
      );
-print +($exister ? "ok 4\n" : "not ok 4\n");
+ok ($exister);
 
 # Send request and check return
-print +((check_stat($exister,12345)
-	 ) ? "ok 5\n" : "not ok 5\n");
+ok (check_stat($exister,12345));
 
-print +((check_stat($exister,66666)
-	 ) ? "ok 6\n" : "not ok 6\n");
+ok (check_stat($exister,66666));
 
-print +((check_stat($exister,$$)
-	 ) ? "ok 7\n" : "not ok 7\n");
+ok (check_stat($exister,$$));
 
 # Destructor
 undef $exister;
-print "ok 8\n";
+ok (1);
 
 sub check_stat {
     my $exister = shift;

@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#$Revision: 1.5 $$Date: 2002/07/30 19:13:33 $$Author: wsnyder $
+#$Revision: 1.9 $$Date: 2002/08/20 15:13:26 $$Author: wsnyder $
 ######################################################################
 #
 # This program is Copyright 2002 by Wilson Snyder.
@@ -23,6 +23,7 @@ require 5.6.0;
 use Getopt::Long;
 use IO::File;
 use Pod::Usage;
+use Sys::Hostname;
 use Cwd qw (getcwd chdir);
 use strict;
 use vars qw ($Debug);
@@ -30,13 +31,17 @@ use IPC::PidStat;
 
 #======================================================================
 
+our @Orig_Argv = @ARGV;
 our @Opt_FgArgv;
-our $Opt_Host;
+our $Opt_Host = hostname();
 our $Opt_Pid;
 our $Opt_Signal = 'HUP';
+our $Opt_Killer;
 
 #======================================================================
 # main
+
+$SIG{CHLD} = 'IGNORE';
 
 my $opt_cd;
 my %server_params = ();
@@ -52,6 +57,7 @@ if (! GetOptions (
 		  "pid=i"	=> \$Opt_Pid,
 		  "cd=s"	=> \$opt_cd,
 		  "signal=s"	=> \$Opt_Signal,
+		  "killer=s"	=> \$Opt_Killer,
 		  "<>"		=> \&parameter,
 		  )) {
     usage();
@@ -69,10 +75,15 @@ if ($opt_cd && -d $opt_cd) {
 
 my $exister = new IPC::PidStat (%server_params);
 
+# Debugging
+my $dbgfh = \&STDERR;
+#$dbgfh = IO::File->new("$ENV{HOME}/pidwatch_$$","w") if $Debug;
+print $dbgfh "\tArgs: @Orig_Argv\n" if $Debug;
+
 # Fork once to start parent process
-my $foreground_pid = $$;
+my $foreground_pid = $$;  # Unlike most forks, the job goes in the parent
 if (my $pid = fork()) {  # Parent process, foreground job
-    print "\tForeground: @Opt_FgArgv\n" if $Debug;
+    print $dbgfh "\tForeground: @Opt_FgArgv\n" if $Debug;
     exec ("/bin/sh", "-c", join(' ',@Opt_FgArgv));
     die "%Error: Exec failed: @Opt_FgArgv,";
 }
@@ -92,7 +103,7 @@ chdir "/";
 
 while (1) {
     if (IPC::PidStat::local_pid_doesnt_exist($foreground_pid)) {
-	print "  Local pid $foreground_pid died\n" if $Debug;
+	print $dbgfh "  Local pid $foreground_pid died\n" if $Debug;
 	exit(0);
     }
     $exister->pid_request(host=>$Opt_Host, pid=>$Opt_Pid);
@@ -106,8 +117,14 @@ while (1) {
     if ($recved[0]
 	&& $recved[0]==$Opt_Pid
 	&& $recved[1]==0) {   # It doesn't exist.  Oh my.
-	print "  Remote pid $Opt_Pid died\n" if $Debug;
-	kill $Opt_Signal, $foreground_pid;
+	print $dbgfh "  Remote pid $Opt_Pid died\n" if $Debug;
+	if ($Opt_Killer) {
+	    exec ($Opt_Killer, $Opt_Signal, $foreground_pid);
+	    exit(0);  # If exec fails...
+	} else {
+	    $Opt_Signal =~ s/^-?(SIG)?//;
+	    kill $Opt_Signal, $foreground_pid;
+	}
 	exit(0);
     }
     sleep 1;
@@ -116,7 +133,7 @@ while (1) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 1.5 $$Date: 2002/07/30 19:13:33 $$Author: wsnyder $ ', "\n";
+    print '$Revision: 1.9 $$Date: 2002/08/20 15:13:26 $$Author: wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -183,6 +200,11 @@ Displays this message and program version and exits.
 Hostname to check for specified pid on.  C<pidstatd> must be running
 on that host to have this program be useful.
 
+=item --killer I<program>
+
+Program to use instead of kill when it's time to terminate the pid.  Will
+be passed arguments as if it was /bin/kill (I<program> I<signame> I<pid>).
+
 =item --pid I<pid>
 
 Process ID to watch.  When this pid exits, the program will kill the
@@ -195,7 +217,7 @@ Port of C<pidstatd> server on remote host.
 =item --signal I<signame>
 
 Signal number/name to send to process on remote PID's death.  Defaults to
-HUP.
+-HUP.
 
 =back
 

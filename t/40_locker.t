@@ -1,83 +1,94 @@
 #!/usr/local/bin/perl -w
-#$Id: 40_locker.t,v 1.1 2002/07/28 19:35:46 wsnyder Exp $
+#$Id: 40_locker.t,v 1.2 2002/08/22 14:31:51 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
 
 use lib "./blib/lib";
+use Test;
+use strict;
+use vars qw (%SLArgs $Serv_Pid);
 
-######################### We start with some black magic to print on failure.
+BEGIN { plan tests => 15 }
+BEGIN { require "t/test_utils.pl"; }
 
-# Change 1..1 below to 1..last_test_to_print .
-# (It may become useful if the test is moved to ./t subdirectory.)
+END { kill 'TERM', $Serv_Pid; }
 
-BEGIN { $| = 1; print "1..14\n";
-	print "****NOTE****: You need './lockerd &' running for this test!\n";
-    }
-END {print "not ok 1\n" unless $loaded;}
+#########################
+# Constructor
+
 use IPC::Locker;
 #$IPC::Locker::Debug=1;
-$loaded = 1;
-print "ok 1\n";
+ok(1);
 
-my @SLArgs = ();
+#########################
+# Server Constructor
 
-######################### End of black magic.
+use IPC::Locker::Server;
+%SLArgs = (port=>socket_find_free(12345));
 
-# Insert your test code below (better if it prints "ok 13"
-# (correspondingly "not ok 13") depending on the success of chunk 13
-# of the test code):
+if ($Serv_Pid = fork()) {
+} else {
+    IPC::Locker::Server->new(%SLArgs)->start_server ();
+    exit(0);
+}
+ok (1);
+sleep(1); #Let server get established
 
-# 2: Constructor
-print +(($lock = new IPC::Locker(@SLArgs,
-				 timeout=>10,
-				 print_down=>sub { die "\n%Error: Can't locate lock server\n"
-						       . "\tRun './lockerd &' before this test\n";
-					       }
-				 )) ? "ok 2\n" : "not ok 2\n");
+#########################
+# User Constructor
 
-# 3: Lock obtain
-print +(($lock->lock()) ? "ok 3\n" : "not ok 3\n");
+my $lock = new IPC::Locker(%SLArgs,
+			   timeout=>10,
+			   print_down=>sub { die "\n%Error: Can't locate lock server\n"
+						 . "\tRun './lockerd &' before this test\n";
+					 }
+			   );
+ok ($lock);
 
-# 4: Lock state
-print +(($lock->locked()) ? "ok 4\n" : "not ok 4\n");
+# Lock obtain
+ok ($lock->lock());
 
-# 5: Lock owner
-print +(($lock->owner()) ? "ok 5\n" : "not ok 5\n");
-# 6: Lock name
-print +(($lock->lock_name() eq 'lock') ? "ok 6\n" : "not ok 6\n");
+# Lock state
+ok ($lock->locked());
 
-# 7: Lock obtain and fail
-print +((!defined( IPC::Locker->lock(@SLArgs, block=>0, user=>'alternate') ))
-	? "ok 7\n" : "not ok 7\n");
+# Lock owner
+ok ($lock->owner());
 
-# 8: Get lock by another name
-print +(($lock2 = new IPC::Locker(@SLArgs,
-				  timeout=>10,
-				  lock=>[qw(lock lock2)],
-				  autounlock=>1,
-				  user=>'alt2',
-				  )) ? "ok 8\n" : "not ok 8\n");
+# Lock name
+ok ($lock->lock_name() eq 'lock');
+
+# Lock obtain and fail
+ok (!defined( IPC::Locker->lock(%SLArgs, block=>0, user=>'alternate') ));
+
+# Get lock by another name
+my $lock2 = new IPC::Locker(%SLArgs,
+			    timeout=>10,
+			    lock=>[qw(lock lock2)],
+			    autounlock=>1,
+			    user=>'alt2',
+			    );
+ok ($lock2);
+
 $lock2->lock();
-print +(($lock2 && $lock2->locked()
-	 && $lock2->lock_name() eq "lock2") ? "ok 9\n" : "not ok 9\n");
+ok (($lock2 && $lock2->locked()
+     && $lock2->lock_name() eq "lock2"));
 
-# 10: Yet another dual lock obtain and fail
-print +((!defined( IPC::Locker->lock(@SLArgs, block=>0, user=>'alt3',
-				     lock=>[qw(lock lock2)],) ))
-	? "ok 10\n" : "not ok 10\n");
+# Yet another dual lock obtain and fail
+ok (!defined( IPC::Locker->lock(%SLArgs, block=>0, user=>'alt3',
+				lock=>[qw(lock lock2)],) ));
 
-# 11: Lock release
-print +(($lock->unlock()) ? "ok 11\n" : "not ok 11\n");
+# Lock release
+ok ($lock->unlock());
 
-# 12: Ping
-print +(($lock->ping()) ? "ok 12\n" : "not ok 12\n");
+# Ping
+ok ($lock->ping());
 
-# 13: Ping unknown host
-print +(!(IPC::Locker->ping(host=>['no_such_host_as_this'],
-			   timeout=>1,
-			   )) ? "ok 13\n" : "not ok 13\n");
+# Ping unknown host
+ok (!(IPC::Locker->ping(host=>['no_such_host_as_this'],
+			timeout=>1,
+			)));
 
-# 14: Destructor
+# Destructor
 undef $lock;
-print "ok 14\n";
+ok (1);

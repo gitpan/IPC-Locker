@@ -1,6 +1,7 @@
-# $Id: Makefile.PL,v 1.12 2002/07/29 14:41:46 wsnyder Exp $
+# $Id: Makefile.PL,v 1.13 2002/08/22 14:31:50 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 
+require 5.005;
 use ExtUtils::MakeMaker;
 use Carp;
 
