@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.1 1999/03/15 17:11:33 wsnyder Exp $
+# $Id: Makefile.PL,v 1.2 1999/06/02 17:30:08 wsnyder Exp $
 
 use ExtUtils::MakeMaker;
 use Carp;
@@ -11,18 +11,22 @@ README: readme.texi
 
 maintainer-clean: distclean
 	-rm README Makefile
+
+dist: distcheck
 ";
 }
 
 ## Remember to upgrade version number!
 WriteMakefile(
-	DISTNAME  => 'IPC-Locker',
-	NAME      => 'IPC::Locker',
-	VERSION_FROM => 'Locker.pm',
-	EXE_FILES => [qw( lockerd )],
-	'dist'    => {COMPRESS => 'gzip -9f',
-		      SUFFIX   => '.gz', 
-		      DIST_DEFAULT => 'README all tardist',
-		     },
-	);
+	      DISTNAME  => 'IPC-Locker',
+	      NAME      => 'IPC::Locker',
+	      AUTHOR	=> 'Wilson Snyder <wsnyder@world.std.com>',
+	      ABSTRACT_FROM => 'Locker.pm',
+	      VERSION_FROM => 'Locker.pm',
+	      EXE_FILES => [qw( lockerd )],
+	      'dist'    => {COMPRESS => 'gzip -9f',
+			    SUFFIX   => '.gz', 
+			    DIST_DEFAULT => 'README all tardist',
+			},
+	      );
 

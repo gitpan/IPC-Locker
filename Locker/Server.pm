@@ -1,15 +1,17 @@
 # IPC::Locker.pm -- distributed lock handler
 
-# RCS Status      : $Id: Server.pm,v 1.3 1999/06/02 13:54:54 wsnyder Exp $
-# Author          : Wilson Snyder <wsnyder@ultranet.com>
+# RCS Status      : $Id: Server.pm,v 1.4 1999/08/23 14:21:42 wsnyder Exp $
+# Author          : Wilson Snyder <wsnyder@world.std.com>
 
 ######################################################################
 #
-# This program is Copyright 1998 by Wilson Snyder.
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This program is Copyright 2000 by Wilson Snyder.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of either the GNU General Public License or the
+# Perl Artistic License, with the exception that it cannot be placed
+# on a CD-ROM or similar media for commercial distribution without the
+# prior approval of the author.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -57,7 +59,7 @@ This package is distributed via CPAN.
 
 =head1 AUTHORS
 
-Wilson Snyder <wsnyder@ultranet.com>
+Wilson Snyder <wsnyder@world.std.com>
 
 =cut
 
@@ -82,7 +84,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = $IPC::Locker::VERSION;
+$VERSION = '1.11';
 
 ######################################################################
 #### Globals
@@ -114,15 +116,18 @@ sub start_server {
 
     $SIG{ALRM} = \&sig_alarm;
 
-    while (my $clientfh = $server->accept()) {
-	alarm (0);
-	print $clientfh "HELLO\n" if $Debug;
-	#
-	my $clientvar = {socket=>$clientfh,
-			 delayed=>0,
-		     };
-	client_service ($clientvar);
-	recheck_locks();
+    while (1) {
+	while (my $clientfh = $server->accept()) {
+	    alarm (0);
+	    print $clientfh "HELLO\n" if $Debug;
+	    #
+	    my $clientvar = {socket=>$clientfh,
+			     delayed=>0,
+			 };
+	    client_service ($clientvar);
+	    recheck_locks();
+	}
+	sleep 1;
     }
 }
 
@@ -259,6 +264,7 @@ sub sig_alarm {
     alarm(0);
     $SIG{ALRM} = \&sig_alarm;
     recheck_locks();
+    print "sig_alarm done\n" if $Debug;
 }
 
 sub set_alarm {

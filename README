@@ -3,8 +3,8 @@ This is the IPC::Locker Perl Package.
 Copyright
 =========
 
-   This package is Copyright 1998 by Wilson Snyder
-<wsnyder@ultranet.com>.
+   This package is Copyright 2000 by Wilson Snyder
+<wsnyder@world.std.com>.
 
    You may distribute under the terms of either the GNU General Public
 License or the Artistic License, as specified in the Perl README file,
@@ -57,10 +57,12 @@ Installation
 
   3. Type `make' to compile IPC::Locker.
 
-  4. Type `make install' to install the programs and any data files and
+  4. Type `make test' to check the compilation.
+
+  5. Type `make install' to install the programs and any data files and
      documentation.
 
-  5. You may wish to install `lockerd' in a init.rc file so that it is
+  6. You may wish to install `lockerd' in a init.rc file so that it is
      run at system startup.
 
 

@@ -1,4 +1,4 @@
-#$Id: test.pl,v 1.1 1999/03/15 17:11:34 wsnyder Exp $
+#$Id: test.pl,v 1.2 1999/08/23 14:21:42 wsnyder Exp $
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
 
@@ -22,7 +22,11 @@ print "ok 1\n";
 # of the test code):
 
 # 2: Constructor
-print (($lock = new IPC::Locker) ? "ok 2\n" : "not ok 2\n");
+print (($lock = new IPC::Locker(timeout=>10,
+				print_down=>sub { die "%Error: Can't locate lock server\n"
+						      . "\tRun 'lockerd &' before this test\n";
+					      }
+				)) ? "ok 2\n" : "not ok 2\n");
 
 # 3: Lock obtain
 print (($lock->lock()) ? "ok 3\n" : "not ok 3\n");

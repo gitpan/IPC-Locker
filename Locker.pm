@@ -1,15 +1,17 @@
 # IPC::Locker.pm -- distributed lock handler
 
-# RCS Status      : $Id: Locker.pm,v 1.3 1999/06/02 13:54:52 wsnyder Exp $
-# Author          : Wilson Snyder <wsnyder@ultranet.com>
+# RCS Status      : $Id: Locker.pm,v 1.7 1999/08/23 14:21:41 wsnyder Exp $
+# Author          : Wilson Snyder <wsnyder@world.std.com>
 
 ######################################################################
 #
-# This program is Copyright 1998 by Wilson Snyder.
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This program is Copyright 2000 by Wilson Snyder.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of either the GNU General Public License or the
+# Perl Artistic License, with the exception that it cannot be placed
+# on a CD-ROM or similar media for commercial distribution without the
+# prior approval of the author.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -75,7 +77,11 @@ this information is not atomic, and may change asyncronously; do not use
 this to tell if the lock will be available, to do that, try to obtain the
 lock and then release it if you got it.
 
+=back
+
 =head1 PARAMETERS
+
+=over 4
 
 =item block
 
@@ -85,7 +91,8 @@ true.
 
 =item host
 
-The name of the host containing the lock server.
+The name of the host containing the lock server.  It may also be a array
+of hostnames, where if the first one is down, subsequent ones will be tried.
 
 =item port
 
@@ -107,6 +114,11 @@ A function to print a message when the lock is busy and needs to be waited
 for.  The first argument is self, second the name of the lock.  Defaults to
 print a message if verbose is set.
 
+=item print_down
+
+A function to print a message when the lock server is unavailable.  The
+first argument is self.  Defaults to a croak message.
+
 =item timeout
 
 The maximum time in seconds that the lock may be held before being forced
@@ -122,6 +134,8 @@ Name to request the lock under, defaults to host_pid_user
 
 True to print messages when waiting for locks.  Defaults false.
 
+=back
+
 =head1 SEE ALSO
 
 C<lockerd>, 
@@ -132,7 +146,7 @@ This package is distributed via CPAN.
 
 =head1 AUTHORS
 
-Wilson Snyder <wsnyder@ultranet.com>
+Wilson Snyder <wsnyder@world.std.com>
 
 =cut
 
@@ -157,7 +171,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = "1.10";
+$VERSION = '1.11';
 
 ######################################################################
 #### Useful Globals
@@ -182,6 +196,7 @@ sub new {
 	print_broke=>sub {my $self=shift; print "Broke lock from $_[0] at ".(scalar(localtime))."\n" if $self->{verbose};},
 	print_obtained=>sub {my $self=shift; print "Obtained lock at ".(scalar(localtime))."\n" if $self->{verbose};},
 	print_waiting=>sub {my $self=shift; print "Waiting for lock from $_[0] at ".(scalar(localtime))."\n" if $self->{verbose};},
+	print_down=>undef,
 	#Internal
 	locked=>0,
 	@_,};
@@ -260,13 +275,34 @@ sub request {
 	       ."$cmd\n");
     print "REQ $req\n" if $Debug;
 
-    my $fh = IO::Socket::INET->new( Proto     => "tcp",
-				    PeerAddr  => $self->{host},
-				    PeerPort  => $self->{port},
-				    );
-    $fh or croak "%Error: Can't locate lock server on $self->{host} $self->{port}\n"
-	. "\tYou probably need to run lockerd\n$self->request(): Stopped";
+    my @hostlist = ($self->{host});
+    @hostlist = @{$self->{host}} if (ref($self->{host}) eq "ARRAY");
 
+    my $fh;
+    foreach my $host (@hostlist) {
+	print "Trying host $host\n" if $Debug;
+	$fh = IO::Socket::INET->new( Proto     => "tcp",
+				     PeerAddr  => $host,
+				     PeerPort  => $self->{port},
+				     );
+	if ($fh) {
+	    if ($host ne $hostlist[0]) {
+		# Reorganize host list so whoever responded is first
+		# This is so if we grab a lock we'll try to return it to the same host
+		$self->{host} = [$host, @hostlist];
+	    }
+	    last;
+	}
+    }
+    if (!$fh) {
+	if (defined $self->{print_down}) {
+	    &{$self->{print_down}} ($self);
+	    return;
+	}
+	croak "%Error: Can't locate lock server on " . (join " or ", @hostlist), " $self->{port}\n"
+	    . "\tYou probably need to run lockerd\n$self->request(): Stopped";
+    }
+    
     print $fh "$req\nEOF\n";
     while (defined (my $line = <$fh>)) {
 	chomp $line;

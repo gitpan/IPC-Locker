@@ -1,18 +1,18 @@
 #!/usr/local/bin/perl -Tw
 # lockerd - distributed lock handler for perl IPC::Locker
 
-# RCS Status      : $Id: lockerd,v 1.1 1999/03/15 17:11:33 wsnyder Exp $
+# RCS Status      : $Id: lockerd,v 1.7 1999/11/16 16:13:12 wsnyder Exp $
 # Author          : Wilson Snyder <wsnyder@world.std.com>
 
 ################ Introduction ################
 #
-# This program creates a TAGS file for verilog.
-# 
-# This program is Copyright 1998 by Wilson Snyder.
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# This program is Copyright 2000 by Wilson Snyder.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of either the GNU General Public License or the
+# Perl Artistic License, with the exception that it cannot be placed
+# on a CD-ROM or similar media for commercial distribution without the
+# prior approval of the author.
 # 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,6 +22,7 @@
 # If you do not have a copy of the GNU General Public License write to
 # the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, 
 # MA 02139, USA.
+######################################################################
 
 require 5.004;
 use lib './blib/lib';	# testing
@@ -53,15 +54,18 @@ $result = &GetOptions (
 
 if (!$result) { &usage(); }
 
-        IPC::Locker::Server->start_server (%server_params);
 # Loop in case something kills us
 while (1) {
     print "Starting server\n" if $Debug;
     unless ($pid = fork) {
         IPC::Locker::Server->start_server (%server_params);
+	exit(0);
     }
     waitpid($pid,0);
     warn "%Warning: Server aborted\n" if $Debug;
+    sleep(1);
+    kill 9, $pid;
+    sleep(1);
 }
 
 exit (0);
@@ -69,14 +73,14 @@ exit (0);
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd,v 1.1 1999/03/15 17:11:33 wsnyder Exp $ ', "\n";
+    print '$Id: lockerd,v 1.7 1999/11/16 16:13:12 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd,v 1.1 1999/03/15 17:11:33 wsnyder Exp $ ';
+    print 'Version: $Id: lockerd,v 1.7 1999/11/16 16:13:12 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }
@@ -109,18 +113,22 @@ IPC::Locker package.
 
 =head1 ARGUMENTS
 
+=over 4
+
 =item --help
 Displays this message and program version and exits.
 
 =item --port
 Specifies the port number to be used.
 
-=item --verstion
+=item --version
 Displays program version and exits.
+
+=back
 
 =head1 AUTHORS
 
-Wilson Snyder <wsnyder@maker.com>
+Wilson Snyder <wsnyder@world.std.com>
 
 =cut
 ######################################################################
