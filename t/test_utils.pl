@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Revision: 1.2 $$Date: 2003/09/22 19:30:51 $$Author: wsnyder $
+# $Revision: 1.4 $$Date: 2004/02/26 21:42:58 $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Common routines required by package tests
 #
 # Copyright 1999-2003 by Wilson Snyder.  This program is free software;
@@ -33,6 +33,7 @@ sub socket_find_free {
 	$fh = IO::Socket::INET->new( Proto     => "tcp",
 				     PeerAddr  => hostname(),
 				     PeerPort  => $port,
+				     Timeout   => 0.1,
 				     );
 	if ($fh) { # Port exists, try again
 	    $fh->close();

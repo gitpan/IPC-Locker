@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#$Revision: 1.12 $$Date: 2003/11/18 15:56:02 $$Author: wsnyder $
+#$Revision: 1.14 $$Date: 2004/08/26 15:04:20 $$Author: ws150726 $
 ######################################################################
 #
 # Copyright 2002-2003 by Wilson Snyder.  This program is free software;
@@ -127,7 +127,7 @@ while (1) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 1.12 $$Date: 2003/11/18 15:56:02 $$Author: wsnyder $ ', "\n";
+    print '$Revision: 1.14 $$Date: 2004/08/26 15:04:20 $$Author: ws150726 $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -157,7 +157,7 @@ pidwatch - Run a command and if another PID exits, kill the command
 
 =head1 SYNOPSIS
 
-C<pidwatch> [--cd I<cd>] --host I<host> --pid I<pid>  [args....]
+  pidwatch [--cd I<cd>] --host <host> --pid <pid>  [args....]
 
 =head1 DESCRIPTION
 
@@ -167,7 +167,7 @@ Run the arguments as a command in the foreground.  When the foreground
 process exits, return its exit status.
 
 In the background, watch the specified pid on the specified host.  If
-C<pidstatd> is running on the specified host, and the specified pid goes
+L<pidstatd> is running on the specified host, and the specified pid goes
 away, kill the foreground command.
 
 Common usage is to kill remote rsh children when a parent is kill -9ed.
@@ -191,7 +191,7 @@ Displays this message and program version and exits.
 
 =item --host I<host>
 
-Hostname to check for specified pid on.  C<pidstatd> must be running
+Hostname to check for specified pid on.  L<pidstatd> must be running
 on that host to have this program be useful.
 
 =item --killer I<program>
@@ -206,7 +206,7 @@ foreground process.
 
 =item --port I<port>
 
-Port of C<pidstatd> server on remote host.
+Port of L<pidstatd> server on remote host.
 
 =item --signal I<signame>
 
@@ -215,13 +215,21 @@ Signal number/name to send to process on remote PIDs death.  Defaults to
 
 =back
 
-=head1 SEE ALSO
+=head1 DISTRIBUTION
 
-C<IPC::PidStat>
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 2002-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<IPC::Locker>, L<IPC::PidStat>, L<pidstat>, L<pidstatd>
 
 =cut
 

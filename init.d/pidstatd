@@ -1,27 +1,32 @@
 #!/bin/sh
-# $Id: pidstatd,v 1.4 2003/11/14 21:25:43 wsnyder Exp $
+# $Id: pidstatd,v 1.7 2004/09/03 12:56:45 wsnyder Exp $
 # DESCRIPTION: Sample file to place in /etc/init.d to start the daemon
 # Distributed with IPC::Locker
 #
 # Copyright 1999-2003 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
+#
+# chkconfig: 23456 99 10
+# description: Pidstatd provides process information services for IPC::PidStat
+# processname: pidstatd
 
 state=$1
+prog=/usr/local/bin/pidstatd
 
 # Source site start file
-if [ -x /usr/local/common/etc/profile.d/site.sh ] ; then
-    . /usr/local/common/etc/profile.d/site.sh
+if [ -x /import/nauticus/common/etc/profile.d/site.sh ] ; then
+    . /import/nauticus/common/etc/profile.d/site.sh
 fi
 
 case $state in
   start)
-        echo starting /usr/local/bin/pidstatd if present
+        echo starting $prog if present
 	if [ $EUID != 0 ]; then
 	    echo "Run as root, only root can do kill 0's"  
 	    exit 10
 	fi
-        [ -f /usr/local/bin/pidstatd ] && /usr/local/bin/pidstatd &
+        [ -f $prog ] && $prog &
         ;;
   stop)
         if test "x`pidof -o $$ -o $PPID -x pidstatd`" != x; then

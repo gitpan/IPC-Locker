@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -Tw
 # pidstatd - distributed lock handler for perl IPC::Locker
-# $Id: pidstatd,v 1.7 2003/11/18 15:56:02 wsnyder Exp $
+# $Id: pidstatd,v 1.11 2004/08/26 15:04:20 ws150726 Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -37,14 +37,37 @@ use vars qw($Pid);
 
 my $Debug = 0;
 my %server_params = ();
+my $opt_fork = 1;
 
 if (!GetOptions (
 		 "help"		=> \&usage,
 		 "debug"	=> \&debug,
 		 "version"	=> \&version,
 		 "port=i"	=> sub {$server_params{port} = $_[1];},
+		 "fork!"	=> \$opt_fork,
 		 )) {
     &usage(); }
+
+if (!$Debug) {
+    if ($opt_fork) {
+	# Fork once to let parent die
+	exit if fork();
+	# Disassociate from controlling terminal
+        POSIX::setsid();
+	# Prevent possibility of acquiring a controling terminal
+	exit if fork();
+	# Change working directory
+	chdir "/";
+    }
+    # Close open file descriptors
+    my $openmax = POSIX::sysconf( &POSIX::_SC_OPEN_MAX );
+    $openmax = (!defined($openmax) || $openmax < 0) ? 64 : $openmax;
+    foreach my $i (0 .. $openmax) { POSIX::close($i); }
+    # Silence please (in case user didn't pipe when starting us)
+    open(STDIN,  "+>/dev/null");
+    open(STDOUT, "+>&STDIN");
+    open(STDERR, "+>&STDIN");
+}
 
 # Loop in case something kills us
 $SIG{HUP}  = \&sig_HUP;
@@ -73,14 +96,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: pidstatd,v 1.7 2003/11/18 15:56:02 wsnyder Exp $ ', "\n";
+    print '$Id: pidstatd,v 1.11 2004/08/26 15:04:20 ws150726 Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: pidstatd,v 1.7 2003/11/18 15:56:02 wsnyder Exp $ ';
+    print 'Version: $Id: pidstatd,v 1.11 2004/08/26 15:04:20 ws150726 Exp $ ';
     print "\n";
     exit (1);
 }
@@ -123,6 +146,12 @@ for PIDs that no longer exists.
 
 Displays this message and program version and exits.
 
+=item --nofork
+
+For debugging, prevents the daemon from creating additional processes and
+from going into the background.  This allows messages to appear on stdout,
+and ctrl-C to stop the daemon.
+
 =item --port
 
 Specifies the port number to be used.
@@ -133,13 +162,21 @@ Displays program version and exits.
 
 =back
 
-=head1 SEE ALSO
+=head1 DISTRIBUTION
 
-C<IPC::Locker>, C<lockerd>
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 2002-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<IPC::Locker>, L<IPC::PidStat>, L<pidstat>, L<pidwatch>
 
 =cut
 ######################################################################

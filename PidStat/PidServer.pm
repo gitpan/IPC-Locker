@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidServer.pm,v 1.9 2004/01/27 18:51:58 wsnyder Exp $
+# $Id: PidServer.pm,v 1.13 2004/09/13 14:06:05 ws150726 Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -34,7 +34,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.430';
+$VERSION = '1.431';
 
 $Hostname = hostname();
 
@@ -98,7 +98,7 @@ IPC::PidStat::PidServer - Process ID existence server
 
 =head1 DESCRIPTION
 
-C<IPC::PidStat::PidServer> responds to UDP requests that contain a PID with
+L<IPC::PidStat::PidServer> responds to UDP requests that contain a PID with
 a packet indicating the PID and if the PID currently exists.
 
 The Perl IPC::Locker package optionally uses this daemon to break locks
@@ -110,24 +110,34 @@ for PIDs that no longer exists.
 
 Starts the server.  Does not return.
 
+=back
+
 =head1 PARAMETERS
+
+=over 4
 
 =item port
 
 The port number (INET) or name (UNIX) of the lock server.  Defaults to
 'pidstatd' looked up via /etc/services, else 1752.
 
-=head1 SEE ALSO
-
-C<pidstatd>, C<IPC::Locker>, C<IPC::PidStat>
+=back
 
 =head1 DISTRIBUTION
 
-This package is distributed via CPAN.
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 2002-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<IPC::Locker>, L<IPC::PidStat>, L<pidstatd>
 
 =cut
 

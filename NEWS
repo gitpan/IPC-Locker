@@ -5,6 +5,10 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in IPC::Locker 1.431 9/13/2004
+
+***	Disassociate pidstatd from stdout so runs better as deamon.
+
 * Changes in IPC::Locker 1.430 1/27/2004
 
 ****	Warn about non-root pidstatd initialization.
@@ -76,7 +80,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.20 2004/01/27 18:51:58 wsnyder Exp $
+$Id: NEWS,v 1.22 2004/09/13 14:06:05 ws150726 Exp $
 ----------------------------------------------------------------------
 Copyright information:
 

@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Server.pm,v 1.26 2004/01/27 18:51:58 wsnyder Exp $
+# $Id: Server.pm,v 1.30 2004/09/13 14:06:05 ws150726 Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -26,7 +26,7 @@ IPC::Locker::Server - Distributed lock handler server
 
 =head1 DESCRIPTION
 
-C<IPC::Locker::Server> provides the server for the IPC::Locker package.
+L<IPC::Locker::Server> provides the server for the IPC::Locker package.
 
 =over 4
 
@@ -34,7 +34,11 @@ C<IPC::Locker::Server> provides the server for the IPC::Locker package.
 
 Starts the server.  Does not return.
 
+=back
+
 =head1 PARAMETERS
+
+=over 4
 
 =item family
 
@@ -45,17 +49,23 @@ The family of transport to use, either INET or UNIX.  Defaults to INET.
 The port number (INET) or name (UNIX) of the lock server.  Defaults to
 'lockerd' looked up via /etc/services, else 1751.
 
-=head1 SEE ALSO
-
-C<lockerd>, C<IPC::Locker>, 
+=back
 
 =head1 DISTRIBUTION
 
-This package is distributed via CPAN.
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 1999-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<IPC::Locker>, L<lockerd>
 
 =cut
 
@@ -83,7 +93,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.430';
+$VERSION = '1.431';
 $Hostname = (hostname() || "localhost");
 
 ######################################################################

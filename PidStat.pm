@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidStat.pm,v 1.10 2004/01/27 18:51:58 wsnyder Exp $
+# $Id: PidStat.pm,v 1.14 2004/09/13 14:06:05 ws150726 Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -33,7 +33,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.430';
+$VERSION = '1.431';
 
 ######################################################################
 #### Creator
@@ -48,7 +48,6 @@ sub new {
 	tries=>5,
 	#Documented
 	port=>$IPC::Locker::Default_PidStat_Port,
-	stat_cb=>sub {},
 	@_,};
     bless $self, $class;
     return $self;
@@ -152,14 +151,17 @@ IPC::PidStat - Process ID existence test
 
   my $exister = new IPC::PidStat(
     port=>1234,
-    exists_cb=>sub {print "Pid $_[1] ",($_[2]?'exists':'dead'); },
     );
   $exister->pid_request(host=>'foo', pid=>$pid)
+  while (1) {  # Poll receiving callbacks
+     my ($epid, $eexists, $ehostname) = $exister->recv_stat();
+     print "Pid $epid ",($eexists?'exists':'dead'),"\n" if $ehostname;
+  }
 
 =head1 DESCRIPTION
 
-C<IPC::PidStat> allows remote requests to be made to the
-C<pidstatd>, to determine if a PID is running on the daemon's machine.
+L<IPC::PidStat> allows remote requests to be made to the
+L<pidstatd>, to determine if a PID is running on the daemon's machine.
 
 PidStat uses UDP, and as such results are fast but may be unreliable.
 Furthermore, the pidstatd may not even be running on the remote machine,
@@ -220,17 +222,23 @@ looked up via /etc/services, else 1752.
 
 =back
 
-=head1 SEE ALSO
-
-C<pidstatd>, C<pidwatch>, C<IPC::Locker>, 
-
 =head1 DISTRIBUTION
 
-This package is distributed via CPAN.
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 2002-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<IPC::Locker>, L<pidstat>, L<pidstatd>, L<pidwatch>
+
+L<IPC::PidStat::Server>
 
 =cut
 ######################################################################

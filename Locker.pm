@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.33 2004/01/27 18:51:58 wsnyder Exp $
+# $Id: Locker.pm,v 1.36 2004/09/13 14:06:05 ws150726 Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -33,7 +33,7 @@ IPC::Locker - Distributed lock handler
 
 =head1 DESCRIPTION
 
-C<IPC::Locker> will query a remote server to obtain a lock.  This is
+L<IPC::Locker> will query a remote server to obtain a lock.  This is
 useful for distributed utilities which run on many machines, and cannot use
 file locks or other such mechanisms due to NFS or lack of common file
 systems.
@@ -161,17 +161,23 @@ True to print messages when waiting for locks.  Defaults false.
 
 =back
 
-=head1 SEE ALSO
-
-C<lockerd>, 
-
 =head1 DISTRIBUTION
 
-This package is distributed via CPAN.
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 1999-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<lockerd>, L<IPC::Locker::Server>
+
+L<IPC::PidStat>, L<pidstat>, L<pidstatd>, L<pidwatch>
 
 =cut
 
@@ -197,7 +203,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.430';
+$VERSION = '1.431';
 
 ######################################################################
 #### Useful Globals

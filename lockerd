@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -Tw
 # lockerd - distributed lock handler for perl IPC::Locker
-# $Id: lockerd,v 1.19 2003/11/18 15:56:02 wsnyder Exp $
+# $Id: lockerd,v 1.22 2004/08/26 15:04:20 ws150726 Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -17,7 +17,6 @@
 
 require 5.004;
 use lib './blib/lib';	# testing
-use English;
 use Getopt::Long;
 use Pod::Text;
 use IPC::Locker::Server;
@@ -76,14 +75,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd,v 1.19 2003/11/18 15:56:02 wsnyder Exp $ ', "\n";
+    print '$Id: lockerd,v 1.22 2004/08/26 15:04:20 ws150726 Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd,v 1.19 2003/11/18 15:56:02 wsnyder Exp $ ';
+    print 'Version: $Id: lockerd,v 1.22 2004/08/26 15:04:20 ws150726 Exp $ ';
     print "\n";
     exit (1);
 }
@@ -138,13 +137,21 @@ Displays program version and exits.
 
 =back
 
-=head1 SEE ALSO
+=head1 DISTRIBUTION
 
-C<IPC::Locker>, C<pidstatd>
+The latest version is available from CPAN and from L<http://www.veripool.com/>.
+
+Copyright 1999-2004 by Wilson Snyder.  This package is free software; you
+can redistribute it and/or modify it under the terms of either the GNU
+Lesser General Public License or the Perl Artistic License.
 
 =head1 AUTHORS
 
 Wilson Snyder <wsnyder@wsnyder.org>
+
+=head1 SEE ALSO
+
+L<IPC::Locker>, L<pidstatd>
 
 =cut
 ######################################################################
