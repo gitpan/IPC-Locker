@@ -1,0 +1,40 @@
+#!/bin/sh
+# $Id: pidstatd,v 1.2 2002/07/28 20:26:35 wsnyder Exp $
+# Distributed with IPC::Locker
+
+state=$1
+
+# Source site start file
+if [ -x /usr/local/common/etc/profile.d/site.sh ] ; then
+    . /usr/local/common/etc/profile.d/site.sh
+fi
+
+case $state in
+  start)
+        echo starting /usr/local/bin/pidstatd if present
+        # Alas, only root can do kill 0's  
+        [ -f /usr/local/bin/pidstatd ] && su root -c /usr/local/bin/pidstatd &
+        ;;
+  stop)
+        if test "x`pidof -o $$ -o $PPID -x pidstatd`" != x; then
+                echo -n $"Stopping pidstatd: "
+                kill `pidof -o $$ -o $PPID -x pidstatd`
+                echo
+        fi
+	exit 0
+        ;;
+  restart|reload)
+	$0 stop
+	$0 start
+	exit 0
+	;;
+  status)
+        if test "x`pidof -o $$ -o $PPID -x pidstatd`" != x; then
+  	        ps f -ww `pidof -o $$ -o $PPID -x pidstatd`
+        fi
+	exit 0
+	;;
+*)
+	echo $"Usage: $0 {start|stop|restart|reload|status}"
+	exit 1
+esac

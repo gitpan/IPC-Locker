@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#$Id: test.pl,v 1.10 2002/04/03 22:03:57 wsnyder Exp $
+#$Id: 40_locker.t,v 1.1 2002/07/28 19:35:46 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -11,8 +11,8 @@ use lib "./blib/lib";
 # Change 1..1 below to 1..last_test_to_print .
 # (It may become useful if the test is moved to ./t subdirectory.)
 
-BEGIN { $| = 1; print "1..6\n";
-	print "****NOTE****: You need 'lockerd &' running for this test!\n";
+BEGIN { $| = 1; print "1..14\n";
+	print "****NOTE****: You need './lockerd &' running for this test!\n";
     }
 END {print "not ok 1\n" unless $loaded;}
 use IPC::Locker;
@@ -31,8 +31,8 @@ my @SLArgs = ();
 # 2: Constructor
 print +(($lock = new IPC::Locker(@SLArgs,
 				 timeout=>10,
-				 print_down=>sub { die "%Error: Can't locate lock server\n"
-						       . "\tRun 'lockerd &' before this test\n";
+				 print_down=>sub { die "\n%Error: Can't locate lock server\n"
+						       . "\tRun './lockerd &' before this test\n";
 					       }
 				 )) ? "ok 2\n" : "not ok 2\n");
 
@@ -70,6 +70,14 @@ print +((!defined( IPC::Locker->lock(@SLArgs, block=>0, user=>'alt3',
 # 11: Lock release
 print +(($lock->unlock()) ? "ok 11\n" : "not ok 11\n");
 
-# 12: Destructor
+# 12: Ping
+print +(($lock->ping()) ? "ok 12\n" : "not ok 12\n");
+
+# 13: Ping unknown host
+print +(!(IPC::Locker->ping(host=>['no_such_host_as_this'],
+			   timeout=>1,
+			   )) ? "ok 13\n" : "not ok 13\n");
+
+# 14: Destructor
 undef $lock;
-print "ok 12\n";
+print "ok 14\n";

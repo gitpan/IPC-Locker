@@ -65,6 +65,6 @@ Installation
      documentation.
 
   6. You may wish to install `lockerd' in a init.rc file so that it is
-     run at system startup.
+     run at system startup.  An example for Linux is in init.d/lockerd.
 
 

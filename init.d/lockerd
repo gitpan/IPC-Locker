@@ -1,0 +1,39 @@
+#!/bin/sh
+# $Id: lockerd,v 1.1 2002/07/28 17:46:07 wsnyder Exp $
+# Distributed with IPC::Locker
+
+state=$1
+
+# Source site start file
+if [ -x /usr/local/common/etc/profile.d/site.sh ] ; then
+    . /usr/local/common/etc/profile.d/site.sh
+fi
+
+case $state in
+  start)
+        echo starting /usr/local/bin/lockerd if present
+        [ -f /usr/local/bin/lockerd ] && su daemon -c /usr/local/bin/lockerd &
+        ;;
+  stop)
+        if test "x`pidof -o $$ -o $PPID -x lockerd`" != x; then
+                echo -n $"Stopping lockerd: "
+                kill `pidof -o $$ -o $PPID -x lockerd`
+                echo
+        fi
+	exit 0
+        ;;
+  restart|reload)
+	$0 stop
+	$0 start
+	exit 0
+	;;
+  status)
+        if test "x`pidof -o $$ -o $PPID -x lockerd`" != x; then
+  	        ps f -ww `pidof -o $$ -o $PPID -x lockerd`
+        fi
+	exit 0
+	;;
+*)
+	echo $"Usage: $0 {start|stop|restart|reload|status}"
+	exit 1
+esac

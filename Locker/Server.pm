@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Server.pm,v 1.16 2002/04/03 21:50:18 wsnyder Exp $
+# $Id: Server.pm,v 1.19 2002/07/28 21:33:53 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -79,8 +79,9 @@ use IO::Socket;
 use IO::Select;
 use Sys::Hostname;
 
+use IPC::PidStat;
 use strict;
-use vars qw($VERSION $Debug %Locks %Clients $Select $Interrupts $Hostname);
+use vars qw($VERSION $Debug %Locks %Clients $Select $Interrupts $Hostname $Exister);
 use Carp;
 
 ######################################################################
@@ -89,7 +90,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.300';
+$VERSION = '1.400';
 $Hostname = (hostname() || "localhost");
 
 ######################################################################
@@ -103,7 +104,7 @@ $Hostname = (hostname() || "localhost");
 
 sub new {
     # Establish the server
-    @_ >= 1 or croak 'usage: IPC::Locker->new ({options})';
+    @_ >= 1 or croak 'usage: IPC::Locker::Server->new ({options})';
     my $proto = shift;
     my $class = ref($proto) || $proto;
     my $self = {
@@ -143,6 +144,9 @@ sub start_server {
     }
     $Select = new IO::Select( $server );
 
+    $Exister = new IPC::PidStat();
+    $Select->add($Exister->fh);
+
     %Clients = ();
     my $timeout=2;
     #$SIG{ALRM} = \&sig_alarm;
@@ -169,6 +173,8 @@ sub start_server {
 				 input=>'',
 			     };
 		$Clients{$clientfh}=$clientvar;
+	    } elsif ($fh == $Exister->fh) {
+		exist_traffic();
 	    } else {
 		my $data = '';
 		my $rc = recv($fh, $data, 1000, 0);
@@ -384,7 +390,7 @@ sub client_send {
     return 0 if (!$clientfh);
     print "RESP $clientfh '$msg" if $Debug;
 
-    local $SIG{PIPE} = 'IGNORE';
+    $SIG{PIPE} = 'IGNORE';
     my $status = eval { send $clientfh,$msg,0; };
     if (!$status) {
 	warn "client_send hangup $? $! $status $clientfh " if $Debug;
@@ -416,6 +422,30 @@ sub alarm_time {
 	}
     }
     return $timelimit ? ($timelimit - $time + 1) : 0;
+}
+
+######################################################################
+######################################################################
+#### Exist traffic
+
+sub exist_traffic {
+    # Handle UDP responses from our $Exister->pid_request calls.
+    print "UDP PidStat in...\n" if $Debug;
+    my ($pid,$exists,$onhost) = $Exister->recv_stat();
+    return if !defined $pid;
+    return if $exists;   # We only care about known-missing processes
+    print "   UDP PidStat PID $pid no longer with us.  RIP.\n" if $Debug;
+    # We don't maintain a table sorted by pid, as these messages
+    # are rare, and there can be many locks per pid.
+    foreach my $locki (values %Locks) {
+	if ($locki->{locked} && $locki->{autounlock}
+	    && $locki->{hostname} eq $onhost
+	    && $locki->{pid} == $pid) {
+	    print "\tUDP RIP Unlock\n" if $Debug;
+	    locki_unlock($locki);		# break the lock
+	}
+    }
+    print "   UDP RIP done\n\n" if $Debug;
 }
 
 ######################################################################
@@ -471,16 +501,26 @@ sub recheck_locks {
 		locki_unlock ($locki);
 	    }
 	    elsif ($locki->{autounlock}) {   # locker said it was OK to break lock if he dies
-		if ($locki->{hostname} eq $Hostname) {	# lock owner is running on same host
-		    if (!kill(0,$locki->{pid})) {	# process does not exist
-			print "Autounlock $locki->{lock} $locki->{owner}\n" if $Debug;
-			locki_unlock($locki);		# break the lock
+		if ((($locki->{autounlock_check_time}||0) + 2) < $time) {
+		    $locki->{autounlock_check_time} = $time;
+		    # Only check every 2 secs or so, else we can spend more time
+		    # doing the OS calls then it's worth
+		    my $dead = undef;
+		    if ($locki->{hostname} eq $Hostname) {	# lock owner is running on same host
+			$dead = IPC::PidStat::local_pid_doesnt_exist($locki->{pid});
+			if ($dead) {
+			    print "Autounlock $locki->{lock} $locki->{owner}\n" if $Debug;
+			    locki_unlock($locki);		# break the lock
+			}
 		    }
-		}
-		else {
-		    # If not running on the same host, we may later try some
-		    # other method to determine whether the process is still
-		    # running.  For now, we do nothing.
+		    if (!defined $dead) {
+			# Ask the other host if the PID is around
+			# Or, we had a permission problem so ask root.
+			print "UDP pid_request $locki->{hostname}\n" if $Debug;
+			$Exister->pid_request(host=>$locki->{hostname}, pid=>$locki->{pid});
+			# This may (or may not) return a UDP message with the status in it.
+			# If so, they will call exist_traffic.
+		    }
 		}
 	    }
 	}

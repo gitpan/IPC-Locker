@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -Tw
-# lockerd - distributed lock handler for perl IPC::Locker
-# $Id: lockerd,v 1.15 2002/07/28 19:35:46 wsnyder Exp $
+# pidstatd - distributed lock handler for perl IPC::Locker
+# $Id: pidstatd,v 1.2 2002/07/28 20:13:32 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -27,8 +27,7 @@ use lib './blib/lib';	# testing
 use English;
 use Getopt::Long;
 use Pod::Text;
-use IPC::Locker::Server;
-use strict;
+use IPC::PidStat::PidServer;
 
 BEGIN { $ENV{PATH} = '/usr/ucb:/bin' }	# Secure path
 
@@ -51,8 +50,6 @@ if (!GetOptions (
 		 "debug"	=> \&debug,
 		 "version"	=> \&version,
 		 "port=i"	=> sub {$server_params{port} = $_[1];},
-		 "path=s"	=> sub {$server_params{port} = $_[1];
-    	    	    		        $server_params{family}='UNIX';},
 		 )) {
     &usage(); }
 
@@ -62,7 +59,7 @@ $SIG{CHLD} = \&sig_HUP;
 while (1) {
     print "Starting server\n" if $Debug;
     unless ($Pid = fork) {
-        IPC::Locker::Server->new(%server_params)->start_server ();
+        IPC::PidStat::PidServer->new(%server_params)->start_server ();
 	exit(0);
     }
     waitpid($Pid,0) if $Pid;
@@ -83,21 +80,21 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd,v 1.15 2002/07/28 19:35:46 wsnyder Exp $ ', "\n";
+    print '$Id: pidstatd,v 1.2 2002/07/28 20:13:32 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd,v 1.15 2002/07/28 19:35:46 wsnyder Exp $ ';
+    print 'Version: $Id: pidstatd,v 1.2 2002/07/28 20:13:32 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }
 
 sub debug {
     $Debug = 1;
-    $IPC::Locker::Server::Debug = 1;
+    $IPC::PidStat::PidServer::Debug = 1;
 }
 
 ######################################################################
@@ -107,20 +104,23 @@ __END__
 
 =head1 NAME
 
-lockerd - Distributed lock handler for perl IPC::Locker
+pidstatd - Determine if process ID is running for perl IPC::Locker
 
 =head1 SYNOPSIS
 
-B<lockerd>
+B<pidstatd>
 [ B<--help> ]
 [ B<--port=>I<port> ]
-[ B<--path=>I<fifo_path> ]
 [ B<--version> ]
 
 =head1 DESCRIPTION
 
-Lockerd will start a daemon to watch for and service connects by the perl
-IPC::Locker package.
+Pidstatd will start a UDP daemon.  The daemon responds to requests that
+contain a PID with a packet indicating the PID and if the PID currently
+exists.
+
+The Perl IPC::Locker package optionally uses this daemon to break locks
+for PIDs that no longer exists.
 
 =head1 ARGUMENTS
 
@@ -132,10 +132,6 @@ Displays this message and program version and exits.
 =item --port
 Specifies the port number to be used.
 
-=item --path
-Specifies that UNIX fifo will be used for communications with clients and
-the path to the fifo.
-  
 =item --version
 Displays program version and exits.
 
@@ -143,7 +139,7 @@ Displays program version and exits.
 
 =head1 SEE ALSO
 
-C<IPC::Locker>, C<pidstatd>
+C<IPC::Locker>, C<lockerd>
 
 =head1 AUTHORS
 

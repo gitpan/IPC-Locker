@@ -1,4 +1,4 @@
-# $Id: Makefile.PL,v 1.8 2001/11/15 14:18:27 wsnyder Exp $
+# $Id: Makefile.PL,v 1.12 2002/07/29 14:41:46 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 
 use ExtUtils::MakeMaker;
@@ -9,6 +9,12 @@ sub MY::postamble {
 README: readme.texi
 	-rm \$@
 	makeinfo \$< --output \$@ --no-headers --no-validate
+
+install::
+	\@echo
+	\@echo -NOTE: You may want to 'cp init.d/lockerd  /etc/init.d'
+	\@echo -NOTE:                 'cp init.d/pidstatd /etc/init.d'
+	\@echo -NOTE: And setup appropriate links in /etc/rc.d/rc3.d
 
 install-here::
 	make INSTALLMAN1DIR=/usr/local/man/man1 INSTALLMAN3DIR=/usr/local/man/man3 INSTALLBIN=/usr/local/bin INSTALLSCRIPT=/usr/local/bin install
@@ -35,7 +41,8 @@ WriteMakefile(
 	      AUTHOR	=> 'Wilson Snyder <wsnyder@wsnyder.org>',
 	      ABSTRACT_FROM => 'Locker.pm',
 	      VERSION_FROM => 'Locker.pm',
-	      EXE_FILES => [qw( lockerd )],
+	      PMLIBDIRS => ['lib', 'Locker', 'PidStat',],
+	      EXE_FILES => [qw( lockerd pidstatd pidwatch )],
 	      'dist'    => {COMPRESS => 'gzip -9f',
 			    SUFFIX   => '.gz', 
 			    DIST_DEFAULT => 'README all tardist',

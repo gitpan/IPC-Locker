@@ -6,6 +6,18 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
+* Changes in IPC::Locker 1.400 8/1/2002
+
+**	Added pidstatd deamon and pidwatch program.
+	Optional.  If running, allows for autounlocking across any hosts,
+	and for any generic application to determine if a PID exists on the
+	server's machine.
+
+***	Added ping() method for determining if a server is up.
+
+***	Added example init.d/lockerd file.
+
+
 * Changes in IPC::Locker 1.300 04/03/2002
 
 **	Added autounlock switch to locks.  This records the host
@@ -42,7 +54,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.9 2002/04/03 21:50:15 wsnyder Exp $
+$Id: NEWS,v 1.14 2002/08/01 14:41:01 wsnyder Exp $
 ----------------------------------------------------------------------
 Copyright information:
 

@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.21 2002/04/03 21:50:15 wsnyder Exp $
+# $Id: Locker.pm,v 1.25 2002/07/28 21:33:53 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -67,6 +67,10 @@ Return the name of the lock.
 
 Remove the given lock.  This will be called automatically when the object
 is destroyed.
+
+=item ping ()
+
+Polls the server to see if it is up.  Returns true if up, otherwise undef.
 
 =item break_lock ()
 
@@ -180,8 +184,9 @@ use Sys::Hostname;
 use Socket;
 use IO::Socket;
 
+use IPC::PidStat;
 use strict;
-use vars qw($VERSION $Debug $Default_Port $Default_Family $Default_UNIX_port);
+use vars qw($VERSION $Debug $Default_Port $Default_Family $Default_UNIX_port $Default_PidStat_Port);
 use Carp;
 
 ######################################################################
@@ -190,13 +195,15 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.300';
+$VERSION = '1.400';
 
 ######################################################################
 #### Useful Globals
 
 $Default_Port = 'lockerd';	# Number (1751) or name to lookup in /etc/services
 $Default_Port = 1751 if !getservbyname ($Default_Port,"");
+$Default_PidStat_Port = 'pidstatd';	# Number (1751) or name to lookup in /etc/services
+$Default_PidStat_Port = 1752 if !getservbyname ($Default_PidStat_Port,"");
 $Default_Family = 'INET';
 $Default_UNIX_port = '/var/locks/lockerd';
 
@@ -240,6 +247,18 @@ sub locked () {
     my $self = shift; ($self && ref($self)) or croak 'usage: $self->locked()';
     return $self if $self->{locked};
     return undef;
+}
+
+sub ping {
+    my $self = shift;
+    $self = $self->new(@_) if (!ref($self));
+    my $ok = 0;
+    eval {
+	$self->_request("");
+	$ok = 1;
+    };
+    return undef if !$ok;
+    return ($self);
 }
 
 ######################################################################
@@ -379,7 +398,7 @@ sub _request {
 	    # See if we can break the lock because the lock holder ran on this same machine.
 	    my ($lname,$lhost,$lpid) = @args;
 	    if ($self->{hostname} eq $lhost) {
-		if (!kill(0,$lpid)) {	# process does not exist
+		if (IPC::PidStat::local_pid_doesnt_exist($lpid)) {
 		    print "Autounlock_LOCAL $lname $lhost $lpid\n" if $Debug;
 		    $self->break_lock(lock=>$self->{lock});
 		    $fh->close();

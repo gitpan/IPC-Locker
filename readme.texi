@@ -93,7 +93,7 @@ documentation.
 
 @item
 You may wish to install @samp{lockerd} in a init.rc file so that it is run at
-system startup.
+system startup.  An example for Linux is in init.d/lockerd.
 
 @end enumerate
 
