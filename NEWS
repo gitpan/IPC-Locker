@@ -5,7 +5,7 @@ The contributors that suggested a given feature is shown in [].
 	
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-* Changes in IPC::Locker 1.432 11/30/2004
+* Changes in IPC::Locker 1.433 12/1/2004
 
 ***	Fix filename conflict on Windows
 
@@ -84,7 +84,7 @@ This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
 
 ----------------------------------------------------------------------
-$Id: NEWS,v 1.23 2004/11/30 13:46:11 ws150726 Exp $
+$Id: NEWS,v 1.24 2004/12/01 13:34:27 ws150726 Exp $
 ----------------------------------------------------------------------
 Copyright information:
 

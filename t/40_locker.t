@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $Id: 40_locker.t,v 1.4 2003/09/22 19:30:51 wsnyder Exp $
+# $Id: 40_locker.t,v 1.5 2004/12/01 13:34:27 ws150726 Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -24,6 +24,7 @@ END { kill 'TERM', $Serv_Pid; }
 use IPC::Locker;
 #$IPC::Locker::Debug=1;
 ok(1);
+print "IPC::Locker VERSION $IPC::Locker::VERSION\n";
 
 #########################
 # Server Constructor
