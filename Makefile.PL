@@ -1,4 +1,5 @@
-# $Id: Makefile.PL,v 1.3 2000/01/21 14:45:41 wsnyder Exp $
+# $Id: Makefile.PL,v 1.5 2001/02/13 15:11:13 wsnyder Exp $
+# DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 
 use ExtUtils::MakeMaker;
 use Carp;
@@ -20,7 +21,7 @@ dist: distcheck
 WriteMakefile(
 	      DISTNAME  => 'IPC-Locker',
 	      NAME      => 'IPC::Locker',
-	      AUTHOR	=> 'Wilson Snyder <wsnyder@world.std.com>',
+	      AUTHOR	=> 'Wilson Snyder <wsnyder@wsnyder.org>',
 	      ABSTRACT_FROM => 'Locker.pm',
 	      VERSION_FROM => 'Locker.pm',
 	      EXE_FILES => [qw( lockerd )],

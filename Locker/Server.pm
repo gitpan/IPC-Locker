@@ -1,7 +1,7 @@
 # IPC::Locker.pm -- distributed lock handler
 
-# RCS Status      : $Id: Server.pm,v 1.8 2000/05/24 14:25:09 wsnyder Exp $
-# Author          : Wilson Snyder <wsnyder@world.std.com>
+# RCS Status      : $Id: Server.pm,v 1.12 2001/02/13 17:37:37 wsnyder Exp $
+# Author          : Wilson Snyder <wsnyder@wsnyder.org>
 
 ######################################################################
 #
@@ -51,7 +51,8 @@ The family of transport to use, either INET or UNIX.  Defaults to INET.
 
 =item port
 
-The port number (INET) or name (UNIX) of the lock server.  Defaults to 1751.
+The port number (INET) or name (UNIX) of the lock server.  Defaults to
+'lockerd' looked up via /etc/services, else 1751.
 
 =head1 SEE ALSO
 
@@ -63,7 +64,7 @@ This package is distributed via CPAN.
 
 =head1 AUTHORS
 
-Wilson Snyder <wsnyder@world.std.com>
+Wilson Snyder <wsnyder@wsnyder.org>
 
 =cut
 
@@ -89,7 +90,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.12';
+$VERSION = '1.14';
 
 ######################################################################
 #### Globals
@@ -134,7 +135,7 @@ sub start_server {
     } elsif ($self->{family} eq 'UNIX') {
     	$server = IO::Socket::UNIX->new(Local => $self->{port},
 					Listen    => SOMAXCONN,
-					)
+					Reuse     => 1)
 	    or die "$0: Error, socket: $!\n port=$self->{port}=";
 	$self->{unix_socket_created}=1;
     } else {
@@ -146,6 +147,7 @@ sub start_server {
     my $timeout=2;
     #$SIG{ALRM} = \&sig_alarm;
     $SIG{INT}= \&sig_INT;
+    $SIG{HUP}= \&sig_INT;
     
     while (!$Interrupts) {
     	my ($r, $w, $e, $fh, @a);
@@ -192,10 +194,10 @@ sub start_server {
 	    }
 	}
 	foreach $fh (@$e) {
-        	# we have finished with the socket
-		delete $Clients{$fh};
-        	$Select->remove($fh);
-        	$fh->close;
+	    # we have finished with the socket
+	    delete $Clients{$fh};
+	    $Select->remove($fh);
+	    $fh->close;
         }
 	recheck_locks();
 	foreach my $cl (values %Clients) {
@@ -218,7 +220,6 @@ sub client_service {
     # Loop getting commands from a specific client
     my $clientvar = shift || die;
     
-    my $clientfh = $clientvar->{socket};
     my $line;
     
     while (defined($line = shift @{$clientvar->{inputlines}})) {
@@ -239,14 +240,21 @@ sub client_service {
 	    last if $wait;
 	}
 	if ($line =~ /^EOF$/m) {
-	    delete $Clients{$clientvar->{socket}};
-	    $Select->remove($clientvar->{socket});
-	    $clientvar->{socket}->close();
-	    $clientvar->{socket} = undef;
+	    client_close ($clientvar);
 	    undef $clientvar;
 	    last; 
 	}
     }
+}
+
+sub client_close {
+    my $clientvar = shift || die;
+    if ($clientvar->{socket}) {
+	delete $Clients{$clientvar->{socket}};
+	$Select->remove($clientvar->{socket});
+	$clientvar->{socket}->close();
+    }
+    $clientvar->{socket} = undef;
 }
 
 sub client_status {
@@ -336,9 +344,9 @@ sub client_send {
 
     local $SIG{PIPE} = 'IGNORE';
     my $status = send $clientfh,$msg,0 ;
-    if ($? || !$status) {
-	warn "client_send hangup $clientfh $?" if $Debug;
-	undef $clientvar->{socket};
+    if (!$status) {
+	warn "client_send hangup $? $! $status $clientfh " if $Debug;
+	client_close ($clientvar);
 	return 0;
     }
     return 1;

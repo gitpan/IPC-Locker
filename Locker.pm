@@ -1,7 +1,7 @@
 # IPC::Locker.pm -- distributed lock handler
 
-# RCS Status      : $Id: Locker.pm,v 1.10 2000/05/24 14:20:42 wsnyder Exp $
-# Author          : Wilson Snyder <wsnyder@world.std.com>
+# RCS Status      : $Id: Locker.pm,v 1.15 2001/02/13 17:37:33 wsnyder Exp $
+# Author          : Wilson Snyder <wsnyder@wsnyder.org>
 
 ######################################################################
 #
@@ -100,7 +100,8 @@ of hostnames, where if the first one is down, subsequent ones will be tried.
 
 =item port
 
-The port number (INET) or name (UNIX) of the lock server.  Defaults to 1751.
+The port number (INET) or name (UNIX) of the lock server.  Defaults to
+'lockerd' looked up via /etc/services, else 1751.
 
 =item lock
 
@@ -154,7 +155,7 @@ This package is distributed via CPAN.
 
 =head1 AUTHORS
 
-Wilson Snyder <wsnyder@world.std.com>
+Wilson Snyder <wsnyder@wsnyder.org>
 
 =cut
 
@@ -179,12 +180,13 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.12';
+$VERSION = '1.14';
 
 ######################################################################
 #### Useful Globals
 
-$Default_Port = 1751;
+$Default_Port = 'lockerd';	# Number (1751) or name to lookup in /etc/services
+$Default_Port = 1751 if !getservbyname ($Default_Port,"");
 $Default_Family = 'INET';
 $Default_UNIX_port = '/var/locks/lockerd';
 
@@ -207,7 +209,7 @@ sub new {
 	print_obtained=>sub {my $self=shift; print "Obtained lock at ".(scalar(localtime))."\n" if $self->{verbose};},
 	print_waiting=>sub {my $self=shift; print "Waiting for lock from $_[0] at ".(scalar(localtime))."\n" if $self->{verbose};},
 	print_down=>undef,
-	family=>'INET',
+	family=>$Default_Family,
 	#Internal
 	locked=>0,
 	@_,};
@@ -230,7 +232,7 @@ sub locked () {
 sub lock {
     my $self = shift;
     $self = $self->new(@_) if (!ref($self));
-    $self->request("LOCK");
+    $self->_request("LOCK");
     croak $self->{error} if $self->{error};
     return ($self) if $self->{locked};
     return undef;
@@ -247,7 +249,7 @@ sub DESTROY () {
 sub unlock {
     my $self = shift; ($self && ref($self)) or croak 'usage: $self->unlock()';
     return if (!$self->{locked});
-    $self->request("UNLOCK");
+    $self->_request("UNLOCK");
     croak $self->{error} if $self->{error};
     return ($self);
 }
@@ -255,7 +257,7 @@ sub unlock {
 sub break_lock {
     my $self = shift; ($self) or croak 'usage: $self->break_lock()';
     $self = $self->new(@_) if (!ref($self));
-    $self->request("BREAK_LOCK");
+    $self->_request("BREAK_LOCK");
     croak $self->{error} if $self->{error};
     return ($self);
 }
@@ -266,7 +268,7 @@ sub break_lock {
 sub owner {
     my $self = shift; ($self) or croak 'usage: $self->status()';
     $self = $self->new(@_) if (!ref($self));
-    $self->request ("STATUS");
+    $self->_request ("STATUS");
     croak $self->{error} if $self->{error};
     print "Locker->owner = $self->{owner}\n" if $Debug;
     return $self->{owner};
@@ -276,7 +278,7 @@ sub owner {
 ######################################################################
 #### Guts: Sending and receiving messages
 
-sub request {
+sub _request {
     my $self = shift;
     my $cmd = shift;
     my $req = ("user $self->{user}\n"
@@ -312,15 +314,15 @@ sub request {
 		return;
 	    }
 	    croak "%Error: Can't locate lock server on " . (join " or ", @hostlist), " $self->{port}\n"
-		. "\tYou probably need to run lockerd\n$self->request(): Stopped";
+		. "\tYou probably need to run lockerd\n$self->_request(): Stopped";
 	}
     } elsif ($self->{family} eq 'UNIX') {
 	$fh = IO::Socket::UNIX->new( Peer => $self->{port},
 				     )
 	    or croak "%Error: Can't locate lock server on $self->{port}.\n"
-		. "\tYou probably need to run lockerd\n$self->request(): Stopped";
+		. "\tYou probably need to run lockerd\n$self->_request(): Stopped";
     } else {
-    	croak "IPC::Locker->request(): No or wrong transport specified.";
+    	croak "IPC::Locker->_request(): No or wrong transport specified.";
     }
     
     print $fh "$req\nEOF\n";
