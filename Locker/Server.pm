@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Server.pm,v 1.22 2002/08/22 15:01:53 wsnyder Exp $
+# $Id: Server.pm,v 1.23 2003/01/31 16:34:58 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -88,7 +88,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.401';
+$VERSION = '1.410';
 $Hostname = (hostname() || "localhost");
 
 ######################################################################
@@ -240,6 +240,7 @@ sub client_service {
 	client_unlock ($clientvar) if ($line =~ /^UNLOCK$/m);
 	client_status ($clientvar) if ($line =~ /^STATUS$/m);
 	client_break  ($clientvar) if ($line =~ /^BREAK_LOCK$/m);
+	client_lock_list ($clientvar) if ($line =~ /^LOCK_LIST$/m);
 	die "restart"              if ($line =~ /^RESTART$/m);
 	if ($line =~ /^LOCK$/m) {
 	    my $wait = client_lock ($clientvar);
@@ -289,6 +290,16 @@ sub client_status {
     return client_send ($clientvar, "\n\n");
 }
 
+sub client_lock_list {
+    my $clientvar = shift || die;
+    print "Locklist!\n" if $Debug;
+    while (my ($lockname, $lock) = each %Locks) {
+	next unless $lock->{locked};
+	client_send ($clientvar, "lock $lockname $lock->{owner}\n");
+    }
+    return client_send ($clientvar, "\n\n");
+}
+ 
 sub client_lock {
     # Client wants this lock, return true if delayed transaction
     my $clientvar = shift || die;

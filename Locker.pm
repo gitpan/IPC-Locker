@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.27 2002/08/22 14:33:42 wsnyder Exp $
+# $Id: Locker.pm,v 1.28 2003/01/31 16:34:58 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -112,6 +112,11 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 The name of the lock.  This may also be a reference to an array of lock names,
 and the first free lock will be returned.
 
+=item lock_list
+
+Return a list of lock and lock owner pairs.  (You can assign this to a hash
+for easier parsing.)
+
 =item print_broke
 
 A function to print a message when the lock is broken.  The only argument
@@ -193,7 +198,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.401';
+$VERSION = '1.410';
 
 ######################################################################
 #### Useful Globals
@@ -317,6 +322,14 @@ sub lock_name {
     }
 }
 
+sub lock_list {
+    my $self = shift;
+    $self = $self->new(@_) if (!ref($self));
+    $self->_request("LOCK_LIST");
+    croak $self->{error} if $self->{error};
+    return @{$self->{lock_list}};
+}
+
 ######################################################################
 ######################################################################
 #### Guts: Sending and receiving messages
@@ -378,6 +391,8 @@ sub _request {
     	croak "IPC::Locker->_request(): No or wrong transport specified.";
     }
     
+    $self->{lock_list} = [];
+
     print $fh "$req\nEOF\n";
     while (defined (my $line = <$fh>)) {
 	chomp $line;
@@ -392,6 +407,9 @@ sub _request {
 	    $self->{lock}   = [$args[0]];
 	    $self->{lock}   = $self->{lock}[0] if ($#{$self->{lock}}<1);  # Back compatible
 	}
+	if ($cmd eq 'lock' && @args == 2) {
+	    push @{$self->{lock_list}}, @args;
+ 	}
 	if ($cmd eq "autounlock_check") {
 	    # See if we can break the lock because the lock holder ran on this same machine.
 	    my ($lname,$lhost,$lpid) = @args;

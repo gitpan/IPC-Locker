@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-#$Id: 40_locker.t,v 1.2 2002/08/22 14:31:51 wsnyder Exp $
+#$Id: 40_locker.t,v 1.3 2003/01/31 16:34:58 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -9,7 +9,7 @@ use Test;
 use strict;
 use vars qw (%SLArgs $Serv_Pid);
 
-BEGIN { plan tests => 15 }
+BEGIN { plan tests => 16 }
 BEGIN { require "t/test_utils.pl"; }
 
 END { kill 'TERM', $Serv_Pid; }
@@ -54,6 +54,10 @@ ok ($lock->locked());
 
 # Lock owner
 ok ($lock->owner());
+
+# Lock list
+my @list = $lock->lock_list();
+ok ($#list==1 && $list[0] eq 'lock' && $list[1]);
 
 # Lock name
 ok ($lock->lock_name() eq 'lock');
