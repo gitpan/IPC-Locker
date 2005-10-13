@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: pidstatd,v 1.7 2004/09/03 12:56:45 wsnyder Exp $
+# $Id: pidstatd,v 1.9 2005/10/13 12:18:50 wsnyder Exp $
 # DESCRIPTION: Sample file to place in /etc/init.d to start the daemon
 # Distributed with IPC::Locker
 #
@@ -10,23 +10,36 @@
 # chkconfig: 23456 99 10
 # description: Pidstatd provides process information services for IPC::PidStat
 # processname: pidstatd
+#
+### BEGIN INIT INFO
+# Provides:          pidstatd
+# Required-Start:    $syslog $remote_fs $network
+# Should-Start:      cron
+# Required-Stop:     $remote_fs $network
+# Should-Stop:
+# Default-Start:     3 5
+# Default-Stop:      0 1 2 6
+# Short-Description: pidstatd
+# Description:       pidstatd
+### END INIT INFO
+
 
 state=$1
 prog=/usr/local/bin/pidstatd
 
-# Source site start file
-if [ -x /import/nauticus/common/etc/profile.d/site.sh ] ; then
-    . /import/nauticus/common/etc/profile.d/site.sh
-fi
-
 case $state in
   start)
-        echo starting $prog if present
 	if [ $EUID != 0 ]; then
 	    echo "Run as root, only root can do kill 0's"  
 	    exit 10
 	fi
-        [ -f $prog ] && $prog &
+	if [ -f $prog ]; then
+            echo starting $prog
+	    $prog &
+	else
+	    echo Service broken, not found: $prog
+	fi
+	exit 0
         ;;
   stop)
         if test "x`pidof -o $$ -o $PPID -x pidstatd`" != x; then

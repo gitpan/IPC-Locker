@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.2 2004/12/01 13:35:49 ws150726 Exp $
+# $Id: Locker.pm,v 1.4 2005/10/13 12:18:51 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -203,14 +203,14 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.433';
+$VERSION = '1.424';
 
 ######################################################################
 #### Useful Globals
 
 $Default_Port = 'lockerd';	# Number (1751) or name to lookup in /etc/services
 $Default_Port = 1751 if !getservbyname ($Default_Port,"");
-$Default_PidStat_Port = 'pidstatd';	# Number (1751) or name to lookup in /etc/services
+$Default_PidStat_Port = 'pidstatd';	# Number (1752) or name to lookup in /etc/services
 $Default_PidStat_Port = 1752 if !getservbyname ($Default_PidStat_Port,"");
 $Default_Family = 'INET';
 $Default_UNIX_port = '/var/locks/lockerd';

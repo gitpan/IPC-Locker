@@ -1,6 +1,6 @@
-#!/usr/local/bin/perl -Tw
+#!/usr/bin/perl -w
 # lockerd - distributed lock handler for perl IPC::Locker
-# $Id: lockerd,v 1.22 2004/08/26 15:04:20 ws150726 Exp $
+# $Id: lockerd,v 1.23 2005/05/05 20:22:33 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -31,6 +31,8 @@ BEGIN { $ENV{PATH} = '/usr/ucb:/bin' }	# Secure path
 # globals
 
 use vars qw($Pid);
+
+$0 = 'lockerd';   # So ps and pidof can find this daemon
 
 ######################################################################
 # main
@@ -75,14 +77,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd,v 1.22 2004/08/26 15:04:20 ws150726 Exp $ ', "\n";
+    print '$Id: lockerd,v 1.23 2005/05/05 20:22:33 wsnyder Exp $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd,v 1.22 2004/08/26 15:04:20 ws150726 Exp $ ';
+    print 'Version: $Id: lockerd,v 1.23 2005/05/05 20:22:33 wsnyder Exp $ ';
     print "\n";
     exit (1);
 }

@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidServer.pm,v 1.2 2004/12/01 13:35:49 ws150726 Exp $
+# $Id: PidServer.pm,v 1.3 2005/10/13 12:18:51 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -34,7 +34,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.433';
+$VERSION = '1.424';
 
 $Hostname = hostname();
 
