@@ -1,9 +1,9 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidStat.pm,v 1.4 2005/11/07 16:44:47 wsnyder Exp $
+# $Id: PidStat.pm,v 1.8 2006/03/13 16:13:17 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -19,6 +19,7 @@ require 5.004;
 
 use IPC::Locker;
 use Socket;
+use Time::HiRes qw(gettimeofday tv_interval);
 use IO::Socket;
 use Sys::Hostname;
 use POSIX;
@@ -33,7 +34,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.434';
+$VERSION = '1.440';
 
 ######################################################################
 #### Creator
@@ -58,7 +59,7 @@ sub open_socket {
     # Open the socket
     return if $self->{_socket_fh};
     $self->{_socket_fh} = IO::Socket::INET->new( Proto     => 'udp')
-	or die "$0: Error, socket: $!";
+	or die "$0: %Error, socket: $!";
 }
 
 sub fh {
@@ -77,7 +78,9 @@ sub pid_request {
     $self->open_socket();  #open if not already
 
     my $out_msg = "PIDR $params{pid}\n";
-    my $dest = sockaddr_in($self->{port}, inet_aton($params{host}));
+    my $ipnum = inet_aton($params{host})
+	or die "%Error: Can't find host $params{host}\n";
+    my $dest = sockaddr_in($self->{port}, $ipnum);
     $self->fh->send($out_msg,0,$dest);
 }
 
@@ -92,6 +95,8 @@ sub recv_stat {
 	my $pid=$1;  my $exists = $2;  my $hostname = $3;
 	print "   Pid $pid Exists on $hostname? $exists\n" if $Debug;
 	return ($pid, $exists, $hostname);
+    } elsif ($in_msg =~ /^UNKN (\d+) (\s+) (\S+)/) {  # PID not determinate
+	return undef;
     }
     return undef;
 }
@@ -106,11 +111,35 @@ sub pid_request_recv {
 	    local $SIG{ALRM} = sub { die "Timeout\n"; };
 	    alarm(1);
 	    @recved = $self->recv_stat();
+	    alarm(0);
 	};
 	return @recved if defined $recved[0];
     }
     return undef;
 }    
+
+######################################################################
+#### Status checking
+
+sub ping_status {
+    my $self = shift;
+    my %params = (pid => 1, 	# Init.
+		  host => $self->{host},
+		  @_,
+		  );
+    # Return OK and status message, for nagios like checks
+    my $start_time = [gettimeofday()];
+    my ($epid, $eexists, $ehostname) = eval {
+	return $self->pid_request_recv(%params);
+    };
+    my $elapsed = tv_interval ( $start_time, [gettimeofday]);
+
+    if (!$eexists) {
+	return ({ok=>undef,status=>"No response from pidstatd on $self->{host}:$self->{port}"});
+    } else {
+	return ({ok=>1,status=>sprintf("%1.3f second response on $self->{host}:$self->{port}", $elapsed)});
+    }
+}
 
 ######################################################################
 #### Utilities
@@ -226,7 +255,7 @@ looked up via /etc/services, else 1752.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2002-2004 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

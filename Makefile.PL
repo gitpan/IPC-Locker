@@ -1,7 +1,7 @@
-# $Id: Makefile.PL,v 1.20 2004/12/09 14:44:29 wsnyder Exp $
+# $Id: Makefile.PL,v 1.23 2006/03/13 16:13:17 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
-# Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 
@@ -17,9 +17,11 @@ README: readme.texi
 
 install::
 	\@echo
-	\@echo -NOTE: You may want to 'cp init.d/lockerd  /etc/init.d'
-	\@echo -NOTE:                 'cp init.d/pidstatd /etc/init.d'
-	\@echo -NOTE: And setup appropriate links in /etc/rc.d/rc3.d
+	\@echo '-NOTE: You may want to'
+	\@echo '-NOTE:      cp init.d/pidstatd init.d/lockerd  /etc/init.d'
+	\@echo '-NOTE: And setup appropriate links in /etc/rc.d/rc*.d,'
+	\@echo '-NOTE: and if using nagios,'
+	\@echo '-NOTE:      cp nagios/check_pidstatd nagios/check_lockerd  /usr/lib/nagios/plugins'
 
 install-here::
 	make install
@@ -52,6 +54,8 @@ WriteMakefile(
 	      AUTHOR	=> 'Wilson Snyder <wsnyder@wsnyder.org>',
 	      ABSTRACT_FROM => 'lib/IPC/Locker.pm',
 	      VERSION_FROM => 'lib/IPC/Locker.pm',
+	      PREREQ_PM => {'Time::HiRes' => 0,
+			},
 	      NO_META	=> 1,
 	      EXE_FILES => [qw( lockerd pidstatd pidwatch )],
 	      'dist'    => {COMPRESS => 'gzip -9f',

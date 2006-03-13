@@ -2,6 +2,12 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.440 3/13/2006
+
+***	Add Nagios plugins check_lockerd and check_pidstatd.
+
+***	Fix pidwatch dieing due to SIGCHILD race. [by Greg Waters]
+
 * IPC::Locker 1.434 10/13/2005
 
 **	NEWS is now renamed Changes, to support CPAN indexing. [Offer Kaye]
@@ -79,12 +85,12 @@ The contributors that suggested a given feature are shown in [].
 ***	Fixed bug where lock expiration timer would fire at wrong time
 
 ----------------------------------------------------------------------
-$Id: Changes,v 1.2 2005/10/13 12:18:50 wsnyder Exp $
+$Id: Changes,v 1.6 2006/03/13 16:46:53 wsnyder Exp $
 ----------------------------------------------------------------------
 
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-Copyright 1999-2004 by Wilson Snyder.  This program is free software;
+Copyright 1999-2006 by Wilson Snyder.  This program is free software;
 you can redistribute it and/or modify it under the terms of either the GNU
 General Public License or the Perl Artistic License.
 

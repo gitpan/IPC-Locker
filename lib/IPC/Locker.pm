@@ -1,9 +1,9 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.5 2005/11/07 16:44:47 wsnyder Exp $
+# $Id: Locker.pm,v 1.8 2006/03/13 16:13:17 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 1999-2003 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2006 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -64,6 +64,11 @@ is destroyed.
 =item ping ()
 
 Polls the server to see if it is up.  Returns true if up, otherwise undef.
+
+=item ping_status ()
+
+Polls the server to see if it is up.  Returns hash reference with {ok}
+indicating if up, and {status} with status information.
 
 =item break_lock ()
 
@@ -165,7 +170,7 @@ True to print messages when waiting for locks.  Defaults false.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 1999-2004 by Wilson Snyder.  This package is free software; you
+Copyright 1999-2006 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
@@ -190,6 +195,7 @@ require Exporter;
 
 use Sys::Hostname;
 use Socket;
+use Time::HiRes qw(gettimeofday tv_interval);
 use IO::Socket;
 
 use IPC::PidStat;
@@ -203,7 +209,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.434';
+$VERSION = '1.440';
 
 ######################################################################
 #### Useful Globals
@@ -268,6 +274,25 @@ sub ping {
     };
     return undef if !$ok;
     return ($self);
+}
+
+sub ping_status {
+    my $self = shift;
+    # Return OK and status message, for nagios like checks
+    $self = $self->new(@_) if (!ref($self));
+    my $ok = 0;
+    my $start_time = [gettimeofday()];
+    eval {
+	$self->_request("");
+	$ok = 1;
+    };
+    my $elapsed = tv_interval ( $start_time, [gettimeofday]);
+
+    if (!$ok) {
+	return ({ok=>undef,status=>"No response from lockerd on $self->{host}:$self->{port}"});
+    } else {
+	return ({ok=>1,status=>sprintf("%1.3f second response on $self->{host}:$self->{port}", $elapsed)});
+    }
 }
 
 ######################################################################
