@@ -2,6 +2,12 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.450 5/16/2006
+
+**	Created lockersh program for adding locks around other programs.
+
+***	Add IPCLOCKER_HOST and IPCLOCKER_PORT environment variables.
+
 * IPC::Locker 1.440 3/13/2006
 
 ***	Add Nagios plugins check_lockerd and check_pidstatd.
@@ -61,7 +67,7 @@ The contributors that suggested a given feature are shown in [].
 
 ***	Fixed bug which made lockerd --port option not work.
 
-***	Allow colon seperated hostnames for fallback hosting.
+***	Allow colon separated hostnames for fallback hosting.
 
 * IPC::Locker 1.200 11/15/2001
 
@@ -85,7 +91,8 @@ The contributors that suggested a given feature are shown in [].
 ***	Fixed bug where lock expiration timer would fire at wrong time
 
 ----------------------------------------------------------------------
-$Id: Changes,v 1.6 2006/03/13 16:46:53 wsnyder Exp $
+$Id: Changes,v 1.8 2006/05/16 18:43:27 wsnyder Exp $
+DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].

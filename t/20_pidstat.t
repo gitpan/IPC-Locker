@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 20_pidstat.t,v 1.10 2006/03/13 15:56:13 wsnyder Exp $
+# $Id: 20_pidstat.t,v 1.11 2006/05/16 18:38:22 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -78,7 +78,7 @@ ok (1);
 
 {   print "pidwatch fail:\n";
     my $nonexist_pid = 999999;  # not even legal
-    my $rtn = `$PERL ./pidwatch --port $SLArgs{port} --pid $nonexist_pid echo never_executed`;
+    my $rtn = `$PERL ./pidwatch --port $SLArgs{port} --pid $nonexist_pid "sleep 1 ; echo never_executed"`;
     chomp $rtn;
     print "returns: $rtn\n";
     ok($rtn eq "");
