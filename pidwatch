@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Revision: 1.16 $$Date: 2006/03/10 02:39:04 $$Author: wsnyder $
+#$Revision: 1.18 $$Date: 2006/05/23 13:38:11 $$Author: wsnyder $
 ######################################################################
 #
 # Copyright 2002-2006 by Wilson Snyder.  This program is free software;
@@ -70,7 +70,7 @@ if ($opt_cd && -d $opt_cd) {
 }
 
 # Debugging
-my $dbgfh = \&STDERR;
+my $dbgfh = \*STDERR;
 #$dbgfh = IO::File->new("$ENV{HOME}/pidwatch_$$","w") if $Debug;
 print $dbgfh "\tArgs: @Orig_Argv\n" if $Debug;
 
@@ -88,7 +88,9 @@ if (my $pid = fork()) {  # Parent process, foreground job
 	die "%Error: Child died with status $?,";
     }
 
-    exec ("/bin/sh", "-c", join(' ',@Opt_FgArgv));
+    my $shArg = join(' ', map{"$_"} @Opt_FgArgv);
+    print $dbgfh "\t/bin/sh -c $shArg\n" if $Debug;
+    exec ("/bin/sh", "-c", $shArg);
     die "%Error: Exec failed: @Opt_FgArgv,";
 }
 #else, rest is for child process.
@@ -146,7 +148,7 @@ while (1) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 1.16 $$Date: 2006/03/10 02:39:04 $$Author: wsnyder $ ', "\n";
+    print '$Revision: 1.18 $$Date: 2006/05/23 13:38:11 $$Author: wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -199,6 +201,12 @@ An example Perl application would invoke:
 =head1 ARGUMENTS
 
 =over 4
+
+=item <parameters>
+
+All non switch arguments after the switches are passed to /bin/sh as a -c
+argument.  Thus passing "a && b" to pidwatch will result in pidwatch
+executing "/bin/sh -c 'a && b'".
 
 =item --cd I<dir>
 
