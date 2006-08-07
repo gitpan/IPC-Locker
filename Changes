@@ -2,6 +2,14 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.452 8/7/2006
+
+***	Destroy_unlock now only unlocks when the current pid matches the pid
+	that requested the lock, to prevent forked processes from unlocking
+	the lock.  [Jeff Dutton]
+
+***	Add pidwatch --foreground switch.
+
 * IPC::Locker 1.451 5/23/2006
 
 ****	Cache IP addresses to avoid name server traffic. [by Greg Waters]
@@ -95,7 +103,7 @@ The contributors that suggested a given feature are shown in [].
 ***	Fixed bug where lock expiration timer would fire at wrong time
 
 ----------------------------------------------------------------------
-$Id: Changes,v 1.11 2006/05/23 14:55:31 wsnyder Exp $
+$Id: Changes,v 1.13 2006/08/07 18:07:43 wsnyder Exp $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 

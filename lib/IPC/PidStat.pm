@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidStat.pm,v 1.11 2006/05/23 14:55:31 wsnyder Exp $
+# $Id: PidStat.pm,v 1.12 2006/08/07 18:08:35 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -33,7 +33,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.451';
+$VERSION = '1.452';
 
 ######################################################################
 #### Creator

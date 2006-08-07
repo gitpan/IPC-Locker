@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.11 2006/05/23 14:55:31 wsnyder Exp $
+# $Id: Locker.pm,v 1.13 2006/08/07 18:08:35 wsnyder Exp $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -104,9 +104,10 @@ true.
 =item destroy_unlock
 
 Boolean flag, true indicates destruction of the lock variable should unlock
-the lock.  Set to false if another child process will maintain and close
-the lock, and other children destroying the lock variable should not unlock
-the lock.  Defaults to true.
+the lock, only if the current process id matches the pid passed to the
+constructor.  Set to false if destruction should not close the lock, such
+as when other children destroying the lock variable should not unlock the
+lock.
 
 =item family
 
@@ -241,7 +242,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.451';
+$VERSION = '1.452';
 
 ######################################################################
 #### Useful Globals
@@ -346,7 +347,7 @@ sub lock {
 
 sub DESTROY () {
     my $self = shift; ($self && ref($self)) or croak 'usage: $self->DESTROY()';
-    if ($self->{destroy_unlock}) {
+    if ($self->{destroy_unlock} && $self->{pid} && $self->{pid}==$$) {
 	$self->unlock();
     }
 }

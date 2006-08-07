@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 20_pidstat.t,v 1.11 2006/05/16 18:38:22 wsnyder Exp $
+# $Id: 20_pidstat.t,v 1.12 2006/06/02 18:23:26 wsnyder Exp $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -13,7 +13,7 @@ use Test;
 use strict;
 use vars qw (%SLArgs $Serv_Pid);
 
-BEGIN { plan tests => 13 }
+BEGIN { plan tests => 14 }
 BEGIN { require "t/test_utils.pl"; }
 
 END { kill 'TERM', $Serv_Pid; }
@@ -82,6 +82,13 @@ ok (1);
     chomp $rtn;
     print "returns: $rtn\n";
     ok($rtn eq "");
+}
+
+{   print "pidwatch immediate exit:\n";
+    my $rtn = `$PERL ./pidwatch --port $SLArgs{port} --pid 1 --foreground $$`;
+    chomp $rtn;
+    print "returns: $rtn\n";
+    ok(1);
 }
 
 #########################
