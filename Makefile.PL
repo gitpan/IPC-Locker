@@ -1,7 +1,7 @@
-# $Id: Makefile.PL,v 1.24 2006/05/16 18:26:23 wsnyder Exp $
+# $Id: Makefile.PL 54 2007-01-23 14:36:56Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
-# Copyright 1999-2006 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 
@@ -31,10 +31,10 @@ preexist:
 	test ! -r \$(HOME)/src/kits/\$(DISTVNAME).tar.gz
 
 tag:
-	cvs tag -F \$(DISTNAME)_\$(VERSION_SYM) .
+	svnorcvs tag  \$(DISTNAME)_\$(VERSION_SYM)
 
 maintainer-diff:
-	cvs diff -r \$(DISTNAME)_\$(VERSION_SYM) 
+	svnorcvs diff \$(DISTNAME)_\$(VERSION_SYM) 
 
 maintainer-dist: preexist dist tag
 	cp \$(DISTVNAME).tar.gz \$(HOME)/src/kits
@@ -54,7 +54,8 @@ WriteMakefile(
 	      AUTHOR	=> 'Wilson Snyder <wsnyder@wsnyder.org>',
 	      ABSTRACT_FROM => 'lib/IPC/Locker.pm',
 	      VERSION_FROM => 'lib/IPC/Locker.pm',
-	      PREREQ_PM => {'Time::HiRes' => 0,
+	      PREREQ_PM => {'Net::Domain' => 0,
+			    'Time::HiRes' => 0,
 			},
 	      NO_META	=> 1,
 	      EXE_FILES => [qw( lockerd lockersh pidstatd pidwatch )],

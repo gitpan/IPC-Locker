@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-#$Revision: 1.3 $$Date: 2006/05/16 18:43:27 $$Author: wsnyder $
+#$Revision: 54 $$Date: 2007-01-23 09:36:56 -0500 (Tue, 23 Jan 2007) $$Author: wsnyder $
 ######################################################################
 #
-# Copyright 2006-2006 by Wilson Snyder.  This program is free software;
+# Copyright 2006-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -17,7 +17,6 @@ require 5.006_001;
 use Getopt::Long;
 use IO::File;
 use Pod::Usage;
-use Sys::Hostname;
 use Cwd qw (getcwd chdir);
 use strict;
 use vars qw ($Debug);
@@ -53,7 +52,7 @@ if (! GetOptions (
 		  #
 		  "<>"		=> \&parameter,
 		  )) {
-    usage();
+    die "%Error: Bad usage, see lockersh --help\n";
 }
 push @Opt_FgArgv, @ARGV;
 
@@ -68,7 +67,7 @@ if ($Opt_Locklist) {
     exit(0);
 }
 
-$#{$server_params{lock}}>=0 or die "%Error: --lock not specified\n";
+$#{$server_params{lock}}>=0 or die "%Error: --lock not specified; see --help\n";
 $Opt_FgArgv[0] or die "%Error: No command specified\n";
 
 # Fork once to start parent process
@@ -125,7 +124,7 @@ print "Child exiting\n" if $Debug;
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 1.3 $$Date: 2006/05/16 18:43:27 $$Author: wsnyder $ ', "\n";
+    print '$Revision: 54 $$Date: 2007-01-23 09:36:56 -0500 (Tue, 23 Jan 2007) $$Author: wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -236,7 +235,7 @@ Port number of L<lockerd> server.  Defaults to 1751.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2006-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2006-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

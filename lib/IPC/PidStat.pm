@@ -1,9 +1,9 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidStat.pm,v 1.12 2006/08/07 18:08:35 wsnyder Exp $
+# $Id: PidStat.pm 54 2007-01-23 14:36:56Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 1999-2006 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -33,7 +33,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.452';
+$VERSION = '1.460';
 
 ######################################################################
 #### Creator
@@ -264,7 +264,7 @@ looked up via /etc/services, else 1752.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2002-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

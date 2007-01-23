@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 # pidstatd - distributed lock handler for perl IPC::Locker
-# $Id: pidstatd,v 1.13 2006/03/10 02:41:38 wsnyder Exp $
+# $Id: pidstatd 54 2007-01-23 14:36:56Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
-# Copyright 1999-2006 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -98,14 +98,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: pidstatd,v 1.13 2006/03/10 02:41:38 wsnyder Exp $ ', "\n";
+    print '$Id: pidstatd 54 2007-01-23 14:36:56Z wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: pidstatd,v 1.13 2006/03/10 02:41:38 wsnyder Exp $ ';
+    print 'Version: $Id: pidstatd 54 2007-01-23 14:36:56Z wsnyder $ ';
     print "\n";
     exit (1);
 }
@@ -168,7 +168,7 @@ Displays program version and exits.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2002-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

@@ -1,9 +1,9 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidServer.pm,v 1.9 2006/08/07 18:08:36 wsnyder Exp $
+# $Id: PidServer.pm 54 2007-01-23 14:36:56Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 1999-2006 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 # 
@@ -22,7 +22,6 @@ require Exporter;
 use IPC::Locker;
 use Socket;
 use IO::Socket;
-use Sys::Hostname;
 
 use strict;
 use vars qw($VERSION $Debug $Hostname);
@@ -34,9 +33,9 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.452';
+$VERSION = '1.460';
 
-$Hostname = hostname();
+$Hostname = IPC::Locker::hostfqdn();
 
 ######################################################################
 #### Creator
@@ -131,7 +130,7 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2002-2006 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

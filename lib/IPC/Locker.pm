@@ -1,9 +1,9 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm,v 1.13 2006/08/07 18:08:35 wsnyder Exp $
+# $Id: Locker.pm 54 2007-01-23 14:36:56Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
-# Copyright 1999-2006 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -203,7 +203,7 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 1999-2006 by Wilson Snyder.  This package is free software; you
+Copyright 1999-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
@@ -226,7 +226,7 @@ require 5.004;
 require Exporter;
 @ISA = qw(Exporter);
 
-use Sys::Hostname;
+use Net::Domain;
 use Socket;
 use Time::HiRes qw(gettimeofday tv_interval);
 use IO::Socket;
@@ -242,7 +242,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.452';
+$VERSION = '1.460';
 
 ######################################################################
 #### Useful Globals
@@ -261,7 +261,7 @@ sub new {
     @_ >= 1 or croak 'usage: IPC::Locker->new ({options})';
     my $proto = shift;
     my $class = ref($proto) || $proto;
-    my $hostname = hostname() || "localhost";
+    my $hostname = hostfqdn();
     my $self = {
 	#Documented
 	host=>($ENV{IPCLOCKER_HOST}||'localhost'),
@@ -282,12 +282,20 @@ sub new {
 	#Internal
 	locked=>0,
 	@_,};
-    $self->{user} ||= hostname() . "_".$self->{pid}."_" . ($ENV{USER} || "");
+    $self->{user} ||= hostfqdn() . "_".$self->{pid}."_" . ($ENV{USER} || "");
     foreach (_array_or_one($self->{lock})) {
 	($_ !~ /\s/) or carp "%Error: Lock names cannot contain whitespace: $_\n";
     }
     bless $self, $class;
     return $self;
+}
+
+######################################################################
+#### Static Accessors
+
+sub hostfqdn {
+    # Return hostname() including domain name
+    return Net::Domain::hostfqdn();
 }
 
 ######################################################################
