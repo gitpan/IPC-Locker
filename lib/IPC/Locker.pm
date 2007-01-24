@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: Locker.pm 58 2007-01-24 20:23:37Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -190,7 +190,8 @@ True to print messages when waiting for locks.  Defaults false.
 
 =item IPCLOCKER_HOST
 
-Hostname of L<lockerd> server.  Defaults to localhost.
+Hostname of L<lockerd> server, or colon separated list including backup
+servers.  Defaults to localhost.
 
 =item IPCLOCKER_PORT
 
@@ -242,7 +243,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.460';
+$VERSION = '1.461';
 
 ######################################################################
 #### Useful Globals

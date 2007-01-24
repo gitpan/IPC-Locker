@@ -2,6 +2,11 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.461 1/24/2007
+
+****	Pass full hostname through IPC::PidStat daemons.
+	This allows lockerd to process returns from hosts with aliased names.
+
 * IPC::Locker 1.460 1/23/2007
 
 **	Support locking across multiple domains.  [Daniel DeFolo]
@@ -109,7 +114,7 @@ The contributors that suggested a given feature are shown in [].
 ***	Fixed bug where lock expiration timer would fire at wrong time
 
 ----------------------------------------------------------------------
-$Id: Changes 54 2007-01-23 14:36:56Z wsnyder $
+$Id: Changes 59 2007-01-24 20:30:50Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 

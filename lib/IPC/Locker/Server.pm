@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Server.pm 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: Server.pm 58 2007-01-24 20:23:37Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -92,7 +92,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.460';
+$VERSION = '1.461';
 $Hostname = IPC::Locker::hostfqdn();
 
 ######################################################################

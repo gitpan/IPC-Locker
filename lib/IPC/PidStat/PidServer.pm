@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidServer.pm 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: PidServer.pm 58 2007-01-24 20:23:37Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -33,7 +33,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.460';
+$VERSION = '1.461';
 
 $Hostname = IPC::Locker::hostfqdn();
 
@@ -67,16 +67,18 @@ sub start_server {
 	my $in_msg;
 	next unless $server->recv($in_msg, 8192);
 	print "Got msg $in_msg\n" if $Debug;
-	if ($in_msg =~ /^PIDR (\d+)/) {  # PID request
+	if ($in_msg    =~ /^PIDR (\d+) (\S+)/  	# PID request, new format
+	    || $in_msg =~ /^PIDR (\d+)/) {  # PID request, old format
 	    my $pid = $1;
+	    my $host = $2 || $Hostname;  # Loop the host through, as the machine may have multiple names
 	    $! = undef;
 	    my $exists = IPC::PidStat::local_pid_exists($pid);
 	    if (defined $exists) {  # Else perhaps we're not running as root?
-		my $out_msg = "EXIS $pid $exists $Hostname";  # PID response
+		my $out_msg = "EXIS $pid $exists $host";  # PID response
 		print "   Send msg $out_msg\n" if $Debug;
 		$server->send($out_msg);  # or die... But we'll ignore errors
 	    } else {
-		my $out_msg = "UNKN $pid na $Hostname";  # PID response
+		my $out_msg = "UNKN $pid na $host";  # PID response
 		print "   Send msg $out_msg\n" if $Debug;
 		$server->send($out_msg);  # or die... But we'll ignore errors
 	    }

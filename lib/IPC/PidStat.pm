@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: PidStat.pm 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: PidStat.pm 58 2007-01-24 20:23:37Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -33,7 +33,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.460';
+$VERSION = '1.461';
 
 ######################################################################
 #### Creator
@@ -78,7 +78,7 @@ sub pid_request {
 
     $self->open_socket();  #open if not already
 
-    my $out_msg = "PIDR $params{pid}\n";
+    my $out_msg = "PIDR $params{pid} $params{host}\n";
 
     my $ipnum = $self->{_host_ips}->{$params{host}};
     if (!$ipnum) {

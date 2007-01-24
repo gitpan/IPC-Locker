@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # lockerd - distributed lock handler for perl IPC::Locker
-# $Id: lockerd 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: lockerd 57 2007-01-24 20:22:07Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -77,14 +77,14 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd 54 2007-01-23 14:36:56Z wsnyder $ ', "\n";
+    print '$Id: lockerd 57 2007-01-24 20:22:07Z wsnyder $ ', "\n";
     $SIG{__WARN__} = sub{};	#pod2text isn't clean.
     pod2text($0);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd 54 2007-01-23 14:36:56Z wsnyder $ ';
+    print 'Version: $Id: lockerd 57 2007-01-24 20:22:07Z wsnyder $ ';
     print "\n";
     exit (1);
 }
@@ -92,6 +92,7 @@ sub version {
 sub debug {
     $Debug = 1;
     $IPC::Locker::Server::Debug = 1;
+    $IPC::PidStat::Debug = 1;
 }
 
 ######################################################################

@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Revision: 54 $$Date: 2007-01-23 09:36:56 -0500 (Tue, 23 Jan 2007) $$Author: wsnyder $
+#$Revision: 57 $$Date: 2007-01-24 15:22:07 -0500 (Wed, 24 Jan 2007) $$Author: wsnyder $
 ######################################################################
 #
 # Copyright 2006-2007 by Wilson Snyder.  This program is free software;
@@ -124,7 +124,7 @@ print "Child exiting\n" if $Debug;
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 54 $$Date: 2007-01-23 09:36:56 -0500 (Tue, 23 Jan 2007) $$Author: wsnyder $ ', "\n";
+    print '$Revision: 57 $$Date: 2007-01-24 15:22:07 -0500 (Wed, 24 Jan 2007) $$Author: wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -223,7 +223,8 @@ Print 'waiting for lock' and similar messages.
 
 =item IPCLOCKER_HOST
 
-Hostname of L<lockerd> server.  Defaults to localhost.
+Hostname of L<lockerd> server, or colon separated list including backup
+servers.  Defaults to localhost.
 
 =item IPCLOCKER_PORT
 
