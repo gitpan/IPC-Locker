@@ -1,4 +1,4 @@
-# $Id: Makefile.PL 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: Makefile.PL 63 2007-04-03 15:21:52Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
 # Copyright 1999-2007 by Wilson Snyder.  This program is free software;
@@ -55,6 +55,7 @@ WriteMakefile(
 	      ABSTRACT_FROM => 'lib/IPC/Locker.pm',
 	      VERSION_FROM => 'lib/IPC/Locker.pm',
 	      PREREQ_PM => {'Net::Domain' => 0,
+			    'Pod::Usage' => 0,
 			    'Time::HiRes' => 0,
 			},
 	      NO_META	=> 1,

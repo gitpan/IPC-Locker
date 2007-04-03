@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: 54 $$Date: 2007-01-23 09:36:56 -0500 (Tue, 23 Jan 2007) $$Author: wsnyder $
+# $Revision: 63 $$Date: 2007-04-03 11:21:52 -0400 (Tue, 03 Apr 2007) $$Author: wsnyder $
 ######################################################################
 #
 # Copyright 2003-2007 by Wilson Snyder.  This program is free software;
@@ -16,7 +16,7 @@
 require 5.004;
 use lib './blib/lib';        # testing
 use Getopt::Long;
-use Pod::Text;
+use Pod::Usage;
 use IPC::PidStat;
 use strict;
 
@@ -45,7 +45,7 @@ if (!GetOptions(
 		"silent!"	=> \$opt_silent,
 		"<>"		=> sub {push @params, shift;},
 		)) {
-    &usage();
+    die "%Error: Bad usage, try 'pidstat --help'\n";
 }
 
 {
@@ -62,14 +62,13 @@ exit(0);
 ######################################################################
 
 sub usage {
-    print '$Id: pidstat 54 2007-01-23 14:36:56Z wsnyder $ ', "\n";
-    $SIG{__WARN__} = sub{};        #pod2text isn't clean.
-    pod2text($0);
+    print '$Id: pidstat 63 2007-04-03 15:21:52Z wsnyder $ ', "\n";
+    pod2usage(-verbose=>2, -exitval => 2);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: pidstat 54 2007-01-23 14:36:56Z wsnyder $ ';
+    print 'Version: $Id: pidstat 63 2007-04-03 15:21:52Z wsnyder $ ';
     print "\n";
     exit (1);
 }

@@ -2,6 +2,12 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.462 4/3/2007
+
+***	Fix requested pid not being passed down to server.  [Vasu Arasanipalai]
+
+****	Fix --help to use Pod::Usage instead of depreciated pod2text.
+
 * IPC::Locker 1.461 1/24/2007
 
 ****	Pass full hostname through IPC::PidStat daemons.
@@ -114,7 +120,7 @@ The contributors that suggested a given feature are shown in [].
 ***	Fixed bug where lock expiration timer would fire at wrong time
 
 ----------------------------------------------------------------------
-$Id: Changes 59 2007-01-24 20:30:50Z wsnyder $
+$Id: Changes 64 2007-04-03 15:40:55Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 

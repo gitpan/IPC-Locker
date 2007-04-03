@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 # pidstatd - distributed lock handler for perl IPC::Locker
-# $Id: pidstatd 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: pidstatd 63 2007-04-03 15:21:52Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -18,7 +18,7 @@
 require 5.004;
 use lib './blib/lib';	# testing
 use Getopt::Long;
-use Pod::Text;
+use Pod::Usage;
 use IPC::PidStat::PidServer;
 use strict;
 
@@ -48,7 +48,8 @@ if (!GetOptions (
 		 "port=i"	=> sub {$server_params{port} = $_[1];},
 		 "fork!"	=> \$opt_fork,
 		 )) {
-    &usage(); }
+    die "%Error: Bad usage, try 'pidstatd --help'\n";
+}
 
 if (!$Debug) {
     if ($opt_fork) {
@@ -98,14 +99,13 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: pidstatd 54 2007-01-23 14:36:56Z wsnyder $ ', "\n";
-    $SIG{__WARN__} = sub{};	#pod2text isn't clean.
-    pod2text($0);
+    print '$Id: pidstatd 63 2007-04-03 15:21:52Z wsnyder $ ', "\n";
+    pod2usage(-verbose=>2, -exitval => 2);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: pidstatd 54 2007-01-23 14:36:56Z wsnyder $ ';
+    print 'Version: $Id: pidstatd 63 2007-04-03 15:21:52Z wsnyder $ ';
     print "\n";
     exit (1);
 }
