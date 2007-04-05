@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 20_pidstat.t 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: 20_pidstat.t 67 2007-04-05 01:12:27Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -94,7 +94,10 @@ ok (1);
 #########################
 # Nagios script check
 
-{   print "check_pidstat:\n";
+print "check_pidstat:\n";
+if (!-d "/usr/lib/nagios/plugins") {
+    skip("nagios not installed (harmless)",1);
+} else {
     # Note we may not be running as root, so need to check $$, not init.
     my $rtn = `$PERL nagios/check_pidstatd --port $SLArgs{port} --pid $$`;
     chomp $rtn;
