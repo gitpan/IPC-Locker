@@ -1,4 +1,4 @@
-# $Id: Makefile.PL 63 2007-04-03 15:21:52Z wsnyder $
+# $Id: Makefile.PL 72 2007-05-03 23:42:24Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
 # Copyright 1999-2007 by Wilson Snyder.  This program is free software;
@@ -59,7 +59,10 @@ WriteMakefile(
 			    'Time::HiRes' => 0,
 			},
 	      NO_META	=> 1,
-	      EXE_FILES => [qw( lockerd lockersh pidstatd pidwatch )],
+	      EXE_FILES => [qw( script/lockerd script/lockersh
+				script/pidstat script/pidstatd
+				script/pidwatch
+				script/uriexec )],
 	      'dist'    => {COMPRESS => 'gzip -9f',
 			    SUFFIX   => '.gz', 
 			    DIST_DEFAULT => 'README all tardist',

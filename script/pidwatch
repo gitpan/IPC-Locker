@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-#$Revision: 63 $$Date: 2007-04-03 11:21:52 -0400 (Tue, 03 Apr 2007) $$Author: wsnyder $
+#$Revision: 74 $$Date: 2007-05-04 08:39:28 -0400 (Fri, 04 May 2007) $$Author: wsnyder $
 ######################################################################
 #
 # Copyright 2002-2007 by Wilson Snyder.  This program is free software;
@@ -158,7 +158,7 @@ while (1) {
 #----------------------------------------------------------------------
 
 sub usage {
-    print '$Revision: 63 $$Date: 2007-04-03 11:21:52 -0400 (Tue, 03 Apr 2007) $$Author: wsnyder $ ', "\n";
+    print '$Revision: 74 $$Date: 2007-05-04 08:39:28 -0400 (Fri, 04 May 2007) $$Author: wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -276,7 +276,7 @@ Wilson Snyder <wsnyder@wsnyder.org>
 
 =head1 SEE ALSO
 
-L<IPC::Locker>, L<IPC::PidStat>, L<pidstat>, L<pidstatd>
+L<IPC::Locker>, L<IPC::PidStat>, L<pidstat>, L<pidstatd>, L<uriexec>
 
 =cut
 

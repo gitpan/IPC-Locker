@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 45_lockersh.t 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: 45_lockersh.t 71 2007-05-03 22:56:52Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -36,14 +36,14 @@ sleep(1); #Let server get established
 # Test lockersh
 
 {   print "lockersh:\n";
-    my $rtn = `$PERL ./lockersh --dhost localhost --port $SLArgs{port} --lock lockersh_test echo OK`;
+    my $rtn = `$PERL script/lockersh --dhost localhost --port $SLArgs{port} --lock lockersh_test echo OK`;
     chomp $rtn;
     print "returns: $rtn\n";
     ok($rtn eq "OK");
 }
 
 {   print "lockersh --locklist:\n";
-    my $rtn = `$PERL ./lockersh --dhost localhost --port $SLArgs{port} --locklist`;
+    my $rtn = `$PERL script/lockersh --dhost localhost --port $SLArgs{port} --locklist`;
     ok(1);
 }
 

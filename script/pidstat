@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: 63 $$Date: 2007-04-03 11:21:52 -0400 (Tue, 03 Apr 2007) $$Author: wsnyder $
+# $Revision: 71 $$Date: 2007-05-03 18:56:52 -0400 (Thu, 03 May 2007) $$Author: wsnyder $
 ######################################################################
 #
 # Copyright 2003-2007 by Wilson Snyder.  This program is free software;
@@ -62,13 +62,13 @@ exit(0);
 ######################################################################
 
 sub usage {
-    print '$Id: pidstat 63 2007-04-03 15:21:52Z wsnyder $ ', "\n";
+    print '$Id: pidstat 71 2007-05-03 22:56:52Z wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: pidstat 63 2007-04-03 15:21:52Z wsnyder $ ';
+    print 'Version: $Id: pidstat 71 2007-05-03 22:56:52Z wsnyder $ ';
     print "\n";
     exit (1);
 }

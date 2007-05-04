@@ -2,6 +2,12 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.470 5/4/2007
+
+**	Add uriexec.  [by Jeff Dutton]
+
+****	Scripts are now distributed under the script directory.
+
 * IPC::Locker 1.463 4/5/2007
 
 ****	Fix 'make test' issues on systems without Nagios.  [cpan-testers]
@@ -124,7 +130,7 @@ The contributors that suggested a given feature are shown in [].
 ***	Fixed bug where lock expiration timer would fire at wrong time
 
 ----------------------------------------------------------------------
-$Id: Changes 67 2007-04-05 01:12:27Z wsnyder $
+$Id: Changes 73 2007-05-04 12:36:35Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 

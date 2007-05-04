@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
-# pidstatd - distributed lock handler for perl IPC::Locker
-# $Id: pidstatd 63 2007-04-03 15:21:52Z wsnyder $
+# lockerd - distributed lock handler for perl IPC::Locker
+# $Id: lockerd 71 2007-05-03 22:56:52Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ################ Introduction ################
 #
@@ -19,15 +19,13 @@ require 5.004;
 use lib './blib/lib';	# testing
 use Getopt::Long;
 use Pod::Usage;
-use IPC::PidStat::PidServer;
+use IPC::Locker::Server;
 use strict;
 
 BEGIN { $ENV{PATH} = '/usr/ucb:/bin' }	# Secure path
 
 ######################################################################
 # configuration
-
-$0 = 'pidstatd';   # So ps and pidof can find this daemon
 
 ######################################################################
 # globals
@@ -39,38 +37,20 @@ use vars qw($Pid);
 
 my $Debug = 0;
 my %server_params = ();
-my $opt_fork = 1;
 
 if (!GetOptions (
 		 "help"		=> \&usage,
 		 "debug"	=> \&debug,
 		 "version"	=> \&version,
 		 "port=i"	=> sub {$server_params{port} = $_[1];},
-		 "fork!"	=> \$opt_fork,
+		 "path=s"	=> sub {$server_params{port} = $_[1];
+    	    	    		        $server_params{family}='UNIX';},
 		 )) {
-    die "%Error: Bad usage, try 'pidstatd --help'\n";
+    die "%Error: Bad usage, try 'lockerd --help'\n";
 }
 
-if (!$Debug) {
-    if ($opt_fork) {
-	# Fork once to let parent die
-	exit if fork();
-	# Disassociate from controlling terminal
-        POSIX::setsid();
-	# Prevent possibility of acquiring a controling terminal
-	exit if fork();
-	# Change working directory
-	chdir "/";
-    }
-    # Close open file descriptors
-    my $openmax = POSIX::sysconf( &POSIX::_SC_OPEN_MAX );
-    $openmax = (!defined($openmax) || $openmax < 0) ? 64 : $openmax;
-    foreach my $i (0 .. $openmax) { POSIX::close($i); }
-    # Silence please (in case user didn't pipe when starting us)
-    open(STDIN,  "+>/dev/null");
-    open(STDOUT, "+>&STDIN");
-    open(STDERR, "+>&STDIN");
-}
+# Must be after we've done --help
+$0 = 'lockerd';   # So ps and pidof can find this daemon
 
 # Loop in case something kills us
 $SIG{HUP}  = \&sig_HUP;
@@ -78,7 +58,7 @@ $SIG{CHLD} = \&sig_HUP;
 while (1) {
     print "Starting server\n" if $Debug;
     unless ($Pid = fork) {
-        IPC::PidStat::PidServer->new(%server_params)->start_server ();
+        IPC::Locker::Server->new(%server_params)->start_server ();
 	exit(0);
     }
     waitpid($Pid,0) if $Pid;
@@ -99,20 +79,21 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: pidstatd 63 2007-04-03 15:21:52Z wsnyder $ ', "\n";
+    print '$Id: lockerd 71 2007-05-03 22:56:52Z wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: pidstatd 63 2007-04-03 15:21:52Z wsnyder $ ';
+    print 'Version: $Id: lockerd 71 2007-05-03 22:56:52Z wsnyder $ ';
     print "\n";
     exit (1);
 }
 
 sub debug {
     $Debug = 1;
-    $IPC::PidStat::PidServer::Debug = 1;
+    $IPC::Locker::Server::Debug = 1;
+    $IPC::PidStat::Debug = 1;
 }
 
 ######################################################################
@@ -122,23 +103,20 @@ __END__
 
 =head1 NAME
 
-pidstatd - Determine if process ID is running for Perl IPC::Locker
+lockerd - Distributed lock handler for Perl IPC::Locker
 
 =head1 SYNOPSIS
 
-B<pidstatd>
+B<lockerd>
 [ B<--help> ]
 [ B<--port=>I<port> ]
+[ B<--path=>I<fifo_path> ]
 [ B<--version> ]
 
 =head1 DESCRIPTION
 
-Pidstatd will start a UDP daemon.  The daemon responds to requests that
-contain a PID with a packet indicating the PID and if the PID currently
-exists.
-
-The Perl IPC::Locker package optionally uses this daemon to break locks
-for PIDs that no longer exists.
+Lockerd will start a daemon to watch for and service connects by the Perl
+IPC::Locker package.
 
 =head1 ARGUMENTS
 
@@ -148,16 +126,15 @@ for PIDs that no longer exists.
 
 Displays this message and program version and exits.
 
-=item --nofork
-
-For debugging, prevents the daemon from creating additional processes and
-from going into the background.  This allows messages to appear on stdout,
-and ctrl-C to stop the daemon.
-
 =item --port
 
 Specifies the port number to be used.
 
+=item --path
+
+Specifies that UNIX FIFO will be used for communications with clients and
+the path to the FIFO.
+  
 =item --version
 
 Displays program version and exits.
@@ -168,7 +145,7 @@ Displays program version and exits.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2002-2007 by Wilson Snyder.  This package is free software; you
+Copyright 1999-2007 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
@@ -178,7 +155,7 @@ Wilson Snyder <wsnyder@wsnyder.org>
 
 =head1 SEE ALSO
 
-L<IPC::Locker>, L<IPC::PidStat>, L<pidstat>, L<pidwatch>
+L<IPC::Locker>, L<pidstatd>
 
 =cut
 ######################################################################

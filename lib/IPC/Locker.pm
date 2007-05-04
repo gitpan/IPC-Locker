@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm 68 2007-04-05 12:41:05Z wsnyder $
+# $Id: Locker.pm 73 2007-05-04 12:36:35Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -243,7 +243,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.463';
+$VERSION = '1.470';
 
 ######################################################################
 #### Useful Globals
