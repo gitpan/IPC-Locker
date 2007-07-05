@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Revision: 54 $$Date: 2007-01-23 09:36:56 -0500 (Tue, 23 Jan 2007) $$Author: wsnyder $
+# $Revision: 78 $$Date: 2007-07-05 16:53:20 -0400 (Thu, 05 Jul 2007) $$Author: wsnyder $
 # DESCRIPTION: Perl ExtUtils: Common routines required by package tests
 #
 # Copyright 1999-2007 by Wilson Snyder.  This program is free software;
@@ -21,6 +21,17 @@ if (!$ENV{HARNESS_ACTIVE}) {
 }
 
 ######################################################################
+# Run
+
+sub run_rtn {
+    my $cmd = shift;
+    print "\t$cmd\n";
+    my $rtn = `$cmd`;
+    chomp $rtn;
+    print "\treturns: $rtn\n";
+    return $rtn;
+}
+
 ######################################################################
 # Socket subroutines
 

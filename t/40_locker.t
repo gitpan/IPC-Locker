@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 40_locker.t 54 2007-01-23 14:36:56Z wsnyder $
+# $Id: 40_locker.t 79 2007-07-05 21:01:06Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -13,7 +13,7 @@ use Test;
 use strict;
 use vars qw (%SLArgs $Serv_Pid);
 
-BEGIN { plan tests => 16 }
+BEGIN { plan tests => 17 }
 BEGIN { require "t/test_utils.pl"; }
 
 END { kill 'TERM', $Serv_Pid; }
@@ -102,3 +102,14 @@ ok (!(IPC::Locker->ping(host=>['no_such_host_as_this'],
 # Destructor
 undef $lock;
 ok (1);
+
+#########################
+{
+    # Check errors get passed thru
+    my $ret = eval {
+	my $lock = IPC::Locker->lock (lock => "locker_subdie_test_$$");
+        die "EXPECTED_DIE_in_EVAL";
+    };
+    my $eval_err = $@;
+    ok ($eval_err && $eval_err =~ /EXPECTED_DIE_in_EVAL/);
+}

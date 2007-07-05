@@ -1,5 +1,5 @@
 # IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm 73 2007-05-04 12:36:35Z wsnyder $
+# $Id: Locker.pm 80 2007-07-05 21:04:31Z wsnyder $
 # Wilson Snyder <wsnyder@wsnyder.org>
 ######################################################################
 #
@@ -243,7 +243,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.470';
+$VERSION = '1.471';
 
 ######################################################################
 #### Useful Globals
@@ -414,6 +414,12 @@ sub lock_list {
 sub _request {
     my $self = shift;
     my $cmd = shift;
+
+    # IO::Socket::INET nastily undef's $@.  Since this may get called
+    # in a destructor due to a error, that looses the error message.
+    # Workaround: save the error and restore at the end.
+    my $preerror = $@;
+
   retry:
 
     # If adding new features, only send the new feature to the server
@@ -506,6 +512,8 @@ sub _request {
     }
     # Note above break_lock also has prologue close
     $fh->close();
+
+    $@ = $preerror || $@;  # User's error is more important then any we make
 }
 
 ######################################################################
