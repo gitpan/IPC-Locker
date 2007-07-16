@@ -2,6 +2,10 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.472 7/16/2007
+
+****	Fix locker test.  [cpan-testers]
+
 * IPC::Locker 1.471 7/5/2007
 
 ****	Fix loosing $@ in evals due to IO::Socket::INET bug.  [Bryce Denney]
@@ -134,7 +138,7 @@ The contributors that suggested a given feature are shown in [].
 ***	Fixed bug where lock expiration timer would fire at wrong time
 
 ----------------------------------------------------------------------
-$Id: Changes 80 2007-07-05 21:04:31Z wsnyder $
+$Id: Changes 83 2007-07-16 12:44:05Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 

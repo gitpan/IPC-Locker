@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: 40_locker.t 79 2007-07-05 21:01:06Z wsnyder $
+# $Id: 40_locker.t 83 2007-07-16 12:44:05Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
@@ -107,7 +107,8 @@ ok (1);
 {
     # Check errors get passed thru
     my $ret = eval {
-	my $lock = IPC::Locker->lock (lock => "locker_subdie_test_$$");
+	my $lock = IPC::Locker->lock (%SLArgs,
+				      lock => "locker_subdie_test_$$");
         die "EXPECTED_DIE_in_EVAL";
     };
     my $eval_err = $@;
