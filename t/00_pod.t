@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
-# $Revision: 71 $$Date: 2007-05-03 18:56:52 -0400 (Thu, 03 May 2007) $$Author: wsnyder $
+# $Id: 00_pod.t 94 2008-01-17 16:12:52Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2000-2007 by Wilson Snyder.  This program is free software;
+# Copyright 2000-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 

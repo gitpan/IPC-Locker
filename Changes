@@ -2,6 +2,14 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.480 2/1/2008
+
+****	Added return type suppression to IPC::PidStat::pid_request.
+
+****	Fix server to support over 1024 client connections.  [Bryce Denney]
+
+****	Lockerd performance enhancements to support > 3000 requests/second.
+
 * IPC::Locker 1.472 7/16/2007
 
 ****	Fix locker test.  [cpan-testers]
@@ -138,13 +146,13 @@ The contributors that suggested a given feature are shown in [].
 ***	Fixed bug where lock expiration timer would fire at wrong time
 
 ----------------------------------------------------------------------
-$Id: Changes 83 2007-07-16 12:44:05Z wsnyder $
+$Id: Changes 98 2008-02-01 21:13:40Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 
 This uses outline mode in Emacs.  See C-h m [M-x describe-mode].
 
-Copyright 1999-2007 by Wilson Snyder.  This program is free software;
+Copyright 1999-2008 by Wilson Snyder.  This program is free software;
 you can redistribute it and/or modify it under the terms of either the GNU
 General Public License or the Perl Artistic License.
 

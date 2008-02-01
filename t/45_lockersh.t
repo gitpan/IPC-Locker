@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
-# $Id: 45_lockersh.t 78 2007-07-05 20:53:20Z wsnyder $
+# $Id: 45_lockersh.t 94 2008-01-17 16:12:52Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
 #
-# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 

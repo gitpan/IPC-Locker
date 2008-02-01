@@ -1,17 +1,5 @@
-# IPC::Locker.pm -- distributed lock handler
-# $Id: Locker.pm 84 2007-07-16 12:44:23Z wsnyder $
-# Wilson Snyder <wsnyder@wsnyder.org>
-######################################################################
-#
-# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
-# you can redistribute it and/or modify it under the terms of either the GNU
-# General Public License or the Perl Artistic License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
+# $Id: Locker.pm 97 2008-01-18 00:20:53Z wsnyder $
+# See copyright, etc in below POD section.
 ######################################################################
 
 =head1 NAME
@@ -84,10 +72,10 @@ Remove current locker for the given lock.
 
 =item owner ([parameter=>value ...]);
 
-Returns a string of who has the lock or undef if not currently .  Note that
-this information is not atomic, and may change asynchronously; do not use
-this to tell if the lock will be available, to do that, try to obtain the
-lock and then release it if you got it.
+Returns a string of who has the lock or undef if not currently locked.
+Note that this information is not atomic, and may change asynchronously; do
+not use this to tell if the lock will be available, to do that, try to
+obtain the lock and then release it if you got it.
 
 =back
 
@@ -204,7 +192,7 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 1999-2007 by Wilson Snyder.  This package is free software; you
+Copyright 1999-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 
@@ -243,7 +231,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.472';
+$VERSION = '1.480';
 
 ######################################################################
 #### Useful Globals
@@ -294,9 +282,11 @@ sub new {
 ######################################################################
 #### Static Accessors
 
+our $_Hostfqdn;
 sub hostfqdn {
     # Return hostname() including domain name
-    return Net::Domain::hostfqdn();
+    $_Hostfqdn = Net::Domain::hostfqdn() if !defined $_Hostfqdn;
+    return $_Hostfqdn;
 }
 
 ######################################################################
@@ -345,8 +335,10 @@ sub ping_status {
 sub lock {
     my $self = shift;
     $self = $self->new(@_) if (!ref($self));
-    $self->_request("LOCK");
-    croak $self->{error} if $self->{error};
+    if (!$self->locked) {
+	$self->_request("LOCK");
+	croak $self->{error} if $self->{error};
+    }
     return ($self) if $self->{locked};
     return undef;
 }
@@ -363,9 +355,10 @@ sub DESTROY () {
 
 sub unlock {
     my $self = shift; ($self && ref($self)) or croak 'usage: $self->unlock()';
-    return if (!$self->{locked});
-    $self->_request("UNLOCK");
-    croak $self->{error} if $self->{error};
+    if ($self->locked) {
+	$self->_request("UNLOCK");
+	croak $self->{error} if $self->{error};
+    }
     return ($self);
 }
 
@@ -373,6 +366,17 @@ sub break_lock {
     my $self = shift; ($self) or croak 'usage: $self->break_lock()';
     $self = $self->new(@_) if (!ref($self));
     $self->_request("BREAK_LOCK");
+    croak $self->{error} if $self->{error};
+    return ($self);
+}
+
+sub dead_pid {
+    my $self = shift; (ref $self) or croak 'usage: $self->dead_pid()';
+    my %args = (host => hostfqdn(),
+		pid => -1,
+		@_);
+    # Used internally to indicate a pid is gone.
+    $self->_request("DEAD_PID $args{host} $args{pid}");
     croak $self->{error} if $self->{error};
     return ($self);
 }
@@ -426,15 +430,17 @@ sub _request {
     # if the feature is on.  This allows for newer clients that don't
     # need to the new feature to still talk to older servers.
     my $req = ("user $self->{user}\n"
-	       ."locks ".join(' ',@{_array_or_one($self->{lock})})."\n"
-	       ."block ".($self->{block}||0)."\n"
-	       ."timeout ".($self->{timeout}||0)."\n");
+	       ."locks ".join(' ',@{_array_or_one($self->{lock})})."\n");
+    $req.=    ("block ".($self->{block}||0)."\n"
+	       ."timeout ".($self->{timeout}||0)."\n") if $cmd ne 'UNLOCK';
     $req.=    ("autounlock ".($self->{autounlock}||0)."\n"
 	       ."pid ".($self->{pid}||$$)."\n"
 	       ."hostname ".($self->{hostname})."\n"
-	       ) if $self->{autounlock};
-    $req.=    ("$cmd\n");
-    print "REQ $req\n" if $Debug;
+	       ) if $self->{autounlock} && $cmd ne 'UNLOCK';
+    $req.=    ("$cmd\n"
+	       ."\n"  # End of group.  Some day we may not always send EOF immediately
+	       ."EOF\n");
+    print "REQ ",join("\nR   ",split(/\n/,$req)),"\n" if $Debug;
 
     my $fh;
     if ($self->{family} eq 'INET'){
@@ -444,7 +450,7 @@ sub _request {
 
 	foreach my $host (@hostlist) {
 	    print "Trying host $host\n" if $Debug;
-	    $fh = IO::Socket::INET->new( Proto     => "tcp",
+	    $fh = IO::Socket::INET->new( Proto     => _tcp_proto(),
 					 PeerAddr  => $host,
 					 PeerPort  => $self->{port},
 					 );
@@ -476,7 +482,7 @@ sub _request {
     
     $self->{lock_list} = [];
 
-    print $fh "$req\nEOF\n";
+    print $fh "$req\n";
     while (defined (my $line = <$fh>)) {
 	chomp $line;
 	next if $line =~ /^\s*$/;
@@ -495,11 +501,15 @@ sub _request {
  	}
 	if ($cmd eq "autounlock_check") {
 	    # See if we can break the lock because the lock holder ran on this same machine.
-	    my ($lname,$lhost,$lpid) = @args;
+	    my ($lname,$lhost,$lpid,$supports_dead) = @args;
 	    if ($self->{hostname} eq $lhost) {
 		if (IPC::PidStat::local_pid_doesnt_exist($lpid)) {
-		    print "Autounlock_LOCAL $lname $lhost $lpid\n" if $Debug;
-		    $self->break_lock(lock=>$self->{lock});
+		    print "Autounlock_LOCAL $lname $lhost $lpid $supports_dead\n" if $Debug;
+		    if ($supports_dead) {  # 1.480 server and newer
+			$self->dead_pid(host=>$lhost, pid=>$lpid);
+		    } else {  # This has a potential race case, which may kill the wrong lock
+			$self->break_lock(lock=>$self->{lock});
+		    }
 		    $fh->close();
 		    goto retry;
 		}
@@ -512,11 +522,23 @@ sub _request {
     }
     # Note above break_lock also has prologue close
     $fh->close();
+    print "DONE\n" if $Debug;
 
-    $@ = $preerror || $@;  # User's error is more important then any we make
+    $@ = $preerror || $@;  # User's error is more important than any we make
 }
 
 ######################################################################
+
+our $_Tcp_Proto;
+sub _tcp_proto {
+    # We don't want creating a socket to have to keep reading /etc/services
+    # One would have thought IO::Socket etc kept this for us...
+    if (!defined $_Tcp_Proto) {
+	$_Tcp_Proto = getprotobyname("tcp")
+	    or die "Could not determine the protocol number for tcp";
+    }
+    return $_Tcp_Proto;
+}
 
 sub _array_or_one {
     return [$_[0]] if !ref $_[0];

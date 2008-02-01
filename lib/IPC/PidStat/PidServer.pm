@@ -1,17 +1,5 @@
-# IPC::Locker.pm -- distributed lock handler
-# $Id: PidServer.pm 84 2007-07-16 12:44:23Z wsnyder $
-# Wilson Snyder <wsnyder@wsnyder.org>
-######################################################################
-#
-# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
-# you can redistribute it and/or modify it under the terms of either the GNU
-# General Public License or the Perl Artistic License.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
+# $Id: PidServer.pm 94 2008-01-17 16:12:52Z wsnyder $
+# See copyright, etc in below POD section.
 ######################################################################
 
 package IPC::PidStat::PidServer;
@@ -33,7 +21,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.472';
+$VERSION = '1.480';
 
 $Hostname = IPC::Locker::hostfqdn();
 
@@ -67,20 +55,35 @@ sub start_server {
 	my $in_msg;
 	next unless $server->recv($in_msg, 8192);
 	print "Got msg $in_msg\n" if $Debug;
-	if ($in_msg    =~ /^PIDR (\d+) (\S+)/  	# PID request, new format
-	    || $in_msg =~ /^PIDR (\d+)/) {  # PID request, old format
-	    my $pid = $1;
-	    my $host = $2 || $Hostname;  # Loop the host through, as the machine may have multiple names
+	my ($cmd,@param) = split /\s+/, $in_msg;  # We rely on the newline to terminate the split
+	# We ignore unknown parameters for forward compatibility
+	# PIDR (\d+) (\S+) ([0123])	# PID request, format after 1.480
+	# PIDR (\d+) (\S+)  		# PID request, format after 1.461
+	# PIDR (\d+)			# PID request, format before 1.461
+	if ($cmd eq 'PIDR') {
+	    my $pid = $param[0];
+	    my $host = $param[1] || $Hostname;  # Loop the host through, as the machine may have multiple names
+	    my $which = $param[2] || 3;
 	    $! = undef;
 	    my $exists = IPC::PidStat::local_pid_exists($pid);
-	    if (defined $exists) {  # Else perhaps we're not running as root?
-		my $out_msg = "EXIS $pid $exists $host";  # PID response
-		print "   Send msg $out_msg\n" if $Debug;
-		$server->send($out_msg);  # or die... But we'll ignore errors
-	    } else {
-		my $out_msg = "UNKN $pid na $host";  # PID response
-		print "   Send msg $out_msg\n" if $Debug;
-		$server->send($out_msg);  # or die... But we'll ignore errors
+	    if ($exists) {
+		if ($which & 1) {
+		    my $out_msg = "EXIS $pid $exists $host";  # PID response
+		    print "   Send msg $out_msg\n" if $Debug;
+		    $server->send($out_msg);  # or die... But we'll ignore errors
+		}
+	    } elsif (defined $exists) {  # Known not to exist
+		if ($which & 2) {
+		    my $out_msg = "EXIS $pid $exists $host";  # PID response
+		    print "   Send msg $out_msg\n" if $Debug;
+		    $server->send($out_msg);  # or die... But we'll ignore errors
+		}
+	    } else {  # Perhaps we're not running as root?
+		if ($which & 4) {
+		    my $out_msg = "UNKN $pid na $host";  # PID response
+		    print "   Send msg $out_msg\n" if $Debug;
+		    $server->send($out_msg);  # or die... But we'll ignore errors
+		}
 	    }
 	}
     }
@@ -132,7 +135,7 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2002-2007 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

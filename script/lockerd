@@ -1,18 +1,6 @@
 #!/usr/bin/perl -w
-# lockerd - distributed lock handler for perl IPC::Locker
-# $Id: lockerd 71 2007-05-03 22:56:52Z wsnyder $
-# Wilson Snyder <wsnyder@wsnyder.org>
-################ Introduction ################
-#
-# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
-# you can redistribute it and/or modify it under the terms of either the GNU
-# General Public License or the Perl Artistic License.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
+# $Id: lockerd 94 2008-01-17 16:12:52Z wsnyder $
+# See copyright, etc in below POD section.
 ######################################################################
 
 require 5.004;
@@ -37,6 +25,7 @@ use vars qw($Pid);
 
 my $Debug = 0;
 my %server_params = ();
+my $opt_fork = 1;
 
 if (!GetOptions (
 		 "help"		=> \&usage,
@@ -45,6 +34,7 @@ if (!GetOptions (
 		 "port=i"	=> sub {$server_params{port} = $_[1];},
 		 "path=s"	=> sub {$server_params{port} = $_[1];
     	    	    		        $server_params{family}='UNIX';},
+		 "fork!"	=> \$opt_fork,
 		 )) {
     die "%Error: Bad usage, try 'lockerd --help'\n";
 }
@@ -57,12 +47,13 @@ $SIG{HUP}  = \&sig_HUP;
 $SIG{CHLD} = \&sig_HUP;
 while (1) {
     print "Starting server\n" if $Debug;
-    unless ($Pid = fork) {
+    $Pid = fork if $opt_fork;
+    unless ($Pid) {
         IPC::Locker::Server->new(%server_params)->start_server ();
 	exit(0);
     }
     waitpid($Pid,0) if $Pid;
-    warn "%Warning: Server aborted\n" if $Debug;
+    warn "%Warning: Server aborted, status=$?\n" if $Debug;
     sleep(1);
     kill 9, $Pid if $Pid;
     $Pid = 0;
@@ -79,13 +70,13 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd 71 2007-05-03 22:56:52Z wsnyder $ ', "\n";
+    print '$Id: lockerd 94 2008-01-17 16:12:52Z wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd 71 2007-05-03 22:56:52Z wsnyder $ ';
+    print 'Version: $Id: lockerd 94 2008-01-17 16:12:52Z wsnyder $ ';
     print "\n";
     exit (1);
 }
@@ -126,6 +117,10 @@ IPC::Locker package.
 
 Displays this message and program version and exits.
 
+=item --nofork
+
+Keep the daemon in the foreground for debugging.
+
 =item --port
 
 Specifies the port number to be used.
@@ -141,11 +136,16 @@ Displays program version and exits.
 
 =back
 
+=head1 PERFORMANCE
+
+Lockerd has tested to perform well handling above 3,000 lock or unlock
+requests per second on a 2GHz AMD Operton server.
+
 =head1 DISTRIBUTION
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 1999-2007 by Wilson Snyder.  This package is free software; you
+Copyright 1999-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

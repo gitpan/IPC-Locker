@@ -1,9 +1,8 @@
-# IPC::Locker.pm -- distributed lock handler
-# $Id: PidStat.pm 84 2007-07-16 12:44:23Z wsnyder $
-# Wilson Snyder <wsnyder@wsnyder.org>
+# $Id: PidStat.pm 94 2008-01-17 16:12:52Z wsnyder $
+# See copyright, etc in below POD section.
 ######################################################################
 #
-# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 #
@@ -33,7 +32,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.472';
+$VERSION = '1.480';
 
 ######################################################################
 #### Creator
@@ -74,11 +73,17 @@ sub pid_request {
     my $self = shift;
     my %params = (host=>'localhost',
 		  pid=>$$,
+		  return_exist=>1,
+		  return_doesnt=>1,
+		  return_unknown=>1,
 		  @_);
 
     $self->open_socket();  #open if not already
 
-    my $out_msg = "PIDR $params{pid} $params{host}\n";
+    my $reqval = (($params{return_exist}?1:0)
+		  | ($params{return_doesnt}?2:0)
+		  | ($params{return_unknown}?4:0));
+    my $out_msg = "PIDR $params{pid} $params{host} $reqval\n";
 
     my $ipnum = $self->{_host_ips}->{$params{host}};
     if (!$ipnum) {
@@ -219,6 +224,12 @@ Creates a new object for later use.  See the PARAMETERS section.
 Sends a request to the specified host's server to see if the specified PID
 exists.
 
+The optional parameters return_exist=>0, return_doesnt=>0 and
+return_unknown=>0 improve performance by suppressing return messages if the
+specified pid exists, doesn't exist, or has unknown state respectively.
+Pidstatd versions before 1.480 ignore this flag, so the return code from
+recv_stat should not assume the undesired return types will be suppressed.
+
 =item pid_request_recv (host=>$host, pid=>$pid);
 
 Calls pid_request and returns the recv_stat reply.  If the response fails
@@ -229,7 +240,7 @@ returned.
 
 Blocks waiting for any return from the server.  Returns undef if none is
 found, or a 2 element array with the PID and existence flag.  Generally
-this would be called inside a IO::Select loop.
+this would be called inside a IO::Poll loop.
 
 =back
 
@@ -264,7 +275,7 @@ looked up via /etc/services, else 1752.
 
 The latest version is available from CPAN and from L<http://www.veripool.com/>.
 
-Copyright 2002-2007 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License or the Perl Artistic License.
 

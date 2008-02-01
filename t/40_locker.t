@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
-# $Id: 40_locker.t 83 2007-07-16 12:44:05Z wsnyder $
+# $Id: 40_locker.t 95 2008-01-17 22:23:02Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
 #
-# Copyright 1999-2007 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2008 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # General Public License or the Perl Artistic License.
 
@@ -13,7 +13,7 @@ use Test;
 use strict;
 use vars qw (%SLArgs $Serv_Pid);
 
-BEGIN { plan tests => 17 }
+BEGIN { plan tests => 23 }
 BEGIN { require "t/test_utils.pl"; }
 
 END { kill 'TERM', $Serv_Pid; }
@@ -23,6 +23,7 @@ END { kill 'TERM', $Serv_Pid; }
 
 use IPC::Locker;
 #$IPC::Locker::Debug=1;
+#$IPC::Locker::Server::Debug=1;
 ok(1);
 print "IPC::Locker VERSION $IPC::Locker::VERSION\n";
 
@@ -61,6 +62,10 @@ ok ($lock->locked());
 # Lock owner
 ok ($lock->owner());
 
+# Lock obtain again, should still be locked
+ok ($lock->lock());
+ok ($lock->locked());
+
 # Lock list
 my @list = $lock->lock_list();
 ok ($#list==1 && $list[0] eq 'lock' && $list[1]);
@@ -88,8 +93,23 @@ ok (($lock2 && $lock2->locked()
 ok (!defined( IPC::Locker->lock(%SLArgs, block=>0, user=>'alt3',
 				lock=>[qw(lock lock2)],) ));
 
+# Get the lock under same owner, should "inherit" lock2's lock
+my $lock3 =  new IPC::Locker(%SLArgs,
+			     timeout=>10,
+			     lock=>[qw(lock lock2)],
+			     autounlock=>1,
+			     user=>'alt2',
+			     );
+$lock3->lock();
+ok ($lock3->lock());
+
 # Lock release
 ok ($lock->unlock());
+ok (!$lock->locked());
+
+# Lock release again, still unlocked
+ok ($lock->unlock());
+ok (!$lock->locked());
 
 # Ping
 ok ($lock->ping());

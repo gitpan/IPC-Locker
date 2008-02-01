@@ -1,19 +1,9 @@
 #!/usr/bin/perl -w
-# $Id: uriexec 78 2007-07-05 20:53:20Z wsnyder $
-######################################################################
-#
-# Copyright 2005-2007 by Jeff Dutton <jdutton@cpan.org>.  This program is
-# free software; you can redistribute it and/or modify it under
-# the terms of either the GNU Lesser General Public License or the Perl
-# Artistic License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#                                                                           
+# $Id: uriexec 94 2008-01-17 16:12:52Z wsnyder $
+# See copyright, etc in below POD section.
 ######################################################################
 
+use lib './blib/lib';        # testing
 use IO::Handle;
 use Getopt::Long;
 use Cwd qw();
@@ -71,7 +61,7 @@ die "%Error: uriexec: exec failed: '".join(' ',@cmds),"\n";
 
 sub usage {
     eval 'use Pod::Usage;';
-    print '$Id: uriexec 78 2007-07-05 20:53:20Z wsnyder $\n';
+    print '$Id: uriexec 94 2008-01-17 16:12:52Z wsnyder $\n';
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -146,7 +136,7 @@ users, not scripts.
 
 =head1 DISTRIBUTION
 
-Copyright 2005-2007 by Jeff Dutton <jdutton@cpan.org>.  This program is
+Copyright 2005-2008 by Jeff Dutton <jdutton@cpan.org>.  This program is
 free software; you can redistribute it and/or modify it under the terms of
 either the GNU Lesser General Public License or the Perl Artistic License.
 
