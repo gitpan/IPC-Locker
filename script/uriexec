@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-# $Id: uriexec 94 2008-01-17 16:12:52Z wsnyder $
+# $Id: uriexec 101 2008-02-07 19:21:19Z wsnyder $
 # See copyright, etc in below POD section.
 ######################################################################
 
@@ -61,7 +61,7 @@ die "%Error: uriexec: exec failed: '".join(' ',@cmds),"\n";
 
 sub usage {
     eval 'use Pod::Usage;';
-    print '$Id: uriexec 94 2008-01-17 16:12:52Z wsnyder $\n';
+    print '$Id: uriexec 101 2008-02-07 19:21:19Z wsnyder $\n';
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }
@@ -82,9 +82,9 @@ sub user_decode {
     $str = uri_decode($str);
     if ($str =~ /(.*?\buriexec\s)(.*)$/) {
 	$str = $1." ".user_decode($2,$level+1);
-	return "{${level}{ ".$str." }$level} ";
+	return "{".$level."{ ".$str." }".$level."} ";
     }
-    return "{${level}{ ".$str." }$level} ";
+    return "{".$level."{ ".$str." }".$level." ";
 }
 
 #######################################################################

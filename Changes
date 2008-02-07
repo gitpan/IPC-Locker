@@ -2,6 +2,10 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.481 2/9/2008
+
+****	Fix Perl 5.6.2 compile warnings.  [cpan-testers]
+
 * IPC::Locker 1.480 2/1/2008
 
 ****	Added return type suppression to IPC::PidStat::pid_request.
@@ -146,7 +150,7 @@ The contributors that suggested a given feature are shown in [].
 ***	Fixed bug where lock expiration timer would fire at wrong time
 
 ----------------------------------------------------------------------
-$Id: Changes 98 2008-02-01 21:13:40Z wsnyder $
+$Id: Changes 101 2008-02-07 19:21:19Z wsnyder $
 DESCRIPTION: Documentation on change history for this package
 ----------------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-# $Id: PidStat.pm 94 2008-01-17 16:12:52Z wsnyder $
+# $Id: PidStat.pm 102 2008-02-07 19:21:53Z wsnyder $
 # See copyright, etc in below POD section.
 ######################################################################
 #
@@ -32,7 +32,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.480';
+$VERSION = '1.481';
 
 ######################################################################
 #### Creator

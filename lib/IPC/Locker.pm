@@ -1,4 +1,4 @@
-# $Id: Locker.pm 97 2008-01-18 00:20:53Z wsnyder $
+# $Id: Locker.pm 102 2008-02-07 19:21:53Z wsnyder $
 # See copyright, etc in below POD section.
 ######################################################################
 
@@ -231,7 +231,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.480';
+$VERSION = '1.481';
 
 ######################################################################
 #### Useful Globals
