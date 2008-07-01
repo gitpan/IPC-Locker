@@ -1,4 +1,3 @@
-# $Id: PidServer.pm 102 2008-02-07 19:21:53Z wsnyder $
 # See copyright, etc in below POD section.
 ######################################################################
 
@@ -21,7 +20,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.481';
+$VERSION = '1.482';
 
 $Hostname = IPC::Locker::hostfqdn();
 
@@ -57,8 +56,8 @@ sub start_server {
 	print "Got msg $in_msg\n" if $Debug;
 	my ($cmd,@param) = split /\s+/, $in_msg;  # We rely on the newline to terminate the split
 	# We ignore unknown parameters for forward compatibility
-	# PIDR (\d+) (\S+) ([0123])	# PID request, format after 1.480
-	# PIDR (\d+) (\S+)  		# PID request, format after 1.461
+	# PIDR (\d+) (\S+) ([0-7])	# PID request, format after 1.480
+	# PIDR (\d+) (\S+)		# PID request, format after 1.461
 	# PIDR (\d+)			# PID request, format before 1.461
 	if ($cmd eq 'PIDR') {
 	    my $pid = $param[0];
@@ -133,7 +132,7 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+The latest version is available from CPAN and from L<http://www.veripool.org/>.
 
 Copyright 2002-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

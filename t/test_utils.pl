@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id: test_utils.pl 94 2008-01-17 16:12:52Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Common routines required by package tests
 #
 # Copyright 1999-2008 by Wilson Snyder.  This program is free software;

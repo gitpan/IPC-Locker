@@ -1,4 +1,3 @@
-# $Id: Locker.pm 102 2008-02-07 19:21:53Z wsnyder $
 # See copyright, etc in below POD section.
 ######################################################################
 
@@ -190,7 +189,7 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+The latest version is available from CPAN and from L<http://www.veripool.org/>.
 
 Copyright 1999-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
@@ -215,7 +214,6 @@ require 5.004;
 require Exporter;
 @ISA = qw(Exporter);
 
-use Net::Domain;
 use Socket;
 use Time::HiRes qw(gettimeofday tv_interval);
 use IO::Socket;
@@ -231,7 +229,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.481';
+$VERSION = '1.482';
 
 ######################################################################
 #### Useful Globals
@@ -282,11 +280,8 @@ sub new {
 ######################################################################
 #### Static Accessors
 
-our $_Hostfqdn;
 sub hostfqdn {
-    # Return hostname() including domain name
-    $_Hostfqdn = Net::Domain::hostfqdn() if !defined $_Hostfqdn;
-    return $_Hostfqdn;
+    return IPC::PidStat::hostfqdn();
 }
 
 ######################################################################
@@ -477,9 +472,9 @@ sub _request {
 	    or croak "%Error: Can't locate lock server on $self->{port}.\n"
 		. "\tYou probably need to run lockerd\n$self->_request(): Stopped";
     } else {
-    	croak "IPC::Locker->_request(): No or wrong transport specified.";
+	croak "IPC::Locker->_request(): No or wrong transport specified.";
     }
-    
+
     $self->{lock_list} = [];
 
     print $fh "$req\n";
@@ -498,7 +493,7 @@ sub _request {
 	}
 	if ($cmd eq 'lock' && @args == 2) {
 	    push @{$self->{lock_list}}, @args;
- 	}
+	}
 	if ($cmd eq "autounlock_check") {
 	    # See if we can break the lock because the lock holder ran on this same machine.
 	    my ($lname,$lhost,$lpid,$supports_dead) = @args;

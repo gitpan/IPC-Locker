@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id: uriexec 101 2008-02-07 19:21:19Z wsnyder $
 # See copyright, etc in below POD section.
 ######################################################################
 
@@ -9,7 +8,9 @@ use Getopt::Long;
 use Cwd qw();
 
 use strict;
-use vars qw(@CmdParts);
+use vars qw(@CmdParts $VERSION);
+
+$VERSION = '1.482';
 
 #======================================================================
 # main
@@ -25,6 +26,7 @@ autoflush STDERR;
 Getopt::Long::config ("no_auto_abbrev","require_order");
 if (! GetOptions (
 		  "help"	=> \&usage,
+		  "version"	=> sub { print "Version: $VERSION\n"; exit (1); },
 		  "cd=s"	=> \$Opt_Cd,
 		  "shell=s"	=> \$Opt_Shell,
 		  "show!"	=> \$opt_show,
@@ -61,7 +63,7 @@ die "%Error: uriexec: exec failed: '".join(' ',@cmds),"\n";
 
 sub usage {
     eval 'use Pod::Usage;';
-    print '$Id: uriexec 101 2008-02-07 19:21:19Z wsnyder $\n';
+    print "Version: $VERSION\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit (1);
 }

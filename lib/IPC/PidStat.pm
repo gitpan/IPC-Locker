@@ -1,4 +1,3 @@
-# $Id: PidStat.pm 102 2008-02-07 19:21:53Z wsnyder $
 # See copyright, etc in below POD section.
 ######################################################################
 #
@@ -20,11 +19,15 @@ use IPC::Locker;
 use Socket;
 use Time::HiRes qw(gettimeofday tv_interval);
 use IO::Socket;
+use Sys::Hostname;
+use Net::Domain;
 use POSIX;
 
 use strict;
-use vars qw($VERSION $Debug);
+use vars qw($VERSION $Debug $Stat_Of_Pid_Supported %Local_Hostnames);
 use Carp;
+
+our @_Local_Responses;
 
 ######################################################################
 #### Configuration Section
@@ -32,7 +35,14 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.481';
+$VERSION = '1.482';
+
+# True if pid existance can be detected by looking at /proc filesystem
+$Stat_Of_Pid_Supported = -e "/proc/1";
+
+%Local_Hostnames = ('localhost' => 1,
+		    hostname() => 1,
+		    hostfqdn() => 1);
 
 ######################################################################
 #### Creator
@@ -80,30 +90,45 @@ sub pid_request {
 
     $self->open_socket();  #open if not already
 
-    my $reqval = (($params{return_exist}?1:0)
-		  | ($params{return_doesnt}?2:0)
-		  | ($params{return_unknown}?4:0));
-    my $out_msg = "PIDR $params{pid} $params{host} $reqval\n";
-
-    my $ipnum = $self->{_host_ips}->{$params{host}};
-    if (!$ipnum) {
-	# inet_aton("name") calls gethostbyname(), which chats with the
-	# NS cache socket and NIS server.  Too costly in a polling loop.
-	$ipnum = inet_aton($params{host})
-	    or die "%Error: Can't find host $params{host}\n";
-	$self->{_host_ips}->{$params{host}} = $ipnum;
+    my $res;
+    if ($Local_Hostnames{$params{host}}) {
+	# No need to go via server, instead check locally
+	my $res = $self->_local_response($params{pid}, $params{host});
+	push @_Local_Responses, $res if $res;
+	# If unknown (undef response), forward to the server
     }
-    my $dest = sockaddr_in($self->{port}, $ipnum);
-    $self->fh->send($out_msg,0,$dest);
+
+    if (!defined $res) {
+	my $reqval = (($params{return_exist}?1:0)
+		      | ($params{return_doesnt}?2:0)
+		      | ($params{return_unknown}?4:0));
+	my $out_msg = "PIDR $params{pid} $params{host} $reqval\n";
+
+	my $ipnum = $self->{_host_ips}->{$params{host}};
+	if (!$ipnum) {
+	    # inet_aton("name") calls gethostbyname(), which chats with the
+	    # NS cache socket and NIS server.  Too costly in a polling loop.
+	    $ipnum = inet_aton($params{host})
+		or die "%Error: Can't find host $params{host}\n";
+	    $self->{_host_ips}->{$params{host}} = $ipnum;
+	}
+	my $dest = sockaddr_in($self->{port}, $ipnum);
+	$self->fh->send($out_msg,0,$dest);
+    }
 }
 
 sub recv_stat {
     my $self = shift;
 
     my $in_msg;
-    $self->fh->recv($in_msg, 8192)
-	or return undef;
-    print "Got response $in_msg\n" if $Debug;
+    if ($#_Local_Responses >= 0) {
+	$in_msg = shift @_Local_Responses;
+	print "Got local response $in_msg\n" if $Debug;
+    } else {
+	$self->fh->recv($in_msg, 8192)
+	    or return undef;
+	print "Got server response $in_msg\n" if $Debug;
+    }
     if ($in_msg =~ /^EXIS (\d+) (\d+) (\S+)/) {  # PID server response
 	my $pid=$1;  my $exists = $2;  my $hostname = $3;
 	print "   Pid $pid Exists on $hostname? $exists\n" if $Debug;
@@ -130,14 +155,14 @@ sub pid_request_recv {
 	return @recved if defined $recved[0];
     }
     return undef;
-}   
+}
 
 ######################################################################
 #### Status checking
 
 sub ping_status {
     my $self = shift;
-    my %params = (pid => 1, 	# Init.
+    my %params = (pid => 1,	# Init.
 		  host => $self->{host},
 		  @_,
 		  );
@@ -153,6 +178,34 @@ sub ping_status {
     } else {
 	return ({ok=>1,status=>sprintf("%1.3f second response on $self->{host}:$self->{port}", $elapsed)});
     }
+}
+
+######################################################################
+#### Local messages
+
+sub _local_response {
+    my $self = shift;
+    my $pid = shift;
+    my $host = shift;
+
+    my $exists = IPC::PidStat::local_pid_exists($pid);
+    if ($exists) {
+	return "EXIS $pid $exists $host";  # PID response
+    } elsif (defined $exists) {  # Known not to exist
+	return "EXIS $pid $exists $host";  # PID response
+    } else {  # Perhaps we're not running as root?
+	return undef;
+    }
+}
+
+######################################################################
+#### Static Accessors
+
+our $_Hostfqdn;
+sub hostfqdn {
+    # Return hostname() including domain name
+    $_Hostfqdn = Net::Domain::hostfqdn() if !defined $_Hostfqdn;
+    return $_Hostfqdn;
 }
 
 ######################################################################
@@ -173,8 +226,14 @@ sub local_pid_exists {
     $! = undef;
     my $exists = (kill (0,$pid))?1:0;
     if ($!) {
-	$exists = undef;
-	$exists = 0 if $! == POSIX::ESRCH;
+	if ($! == POSIX::ESRCH) {
+	    $exists = 0;
+	} elsif ($! == POSIX::EPERM	# Sigh, different user?
+		 && $Stat_Of_Pid_Supported ) { # This system supports /proc
+	    $exists = (-e "/proc/$pid") ? 1:0;
+	} else {
+	    $exists = undef;  # Unknown reason
+	}
     }
     return $exists;
 }
@@ -273,7 +332,7 @@ looked up via /etc/services, else 1752.
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+The latest version is available from CPAN and from L<http://www.veripool.org/>.
 
 Copyright 2002-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU

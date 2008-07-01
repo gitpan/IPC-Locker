@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id: 40_locker.t 95 2008-01-17 22:23:02Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'

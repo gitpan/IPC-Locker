@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id: 01_manifest.t 94 2008-01-17 16:12:52Z wsnyder $
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
 # Copyright 2007-2008 by Wilson Snyder.  This program is free software;

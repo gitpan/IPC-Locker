@@ -1,5 +1,4 @@
 #!/usr/bin/perl -w
-# $Id: lockerd 94 2008-01-17 16:12:52Z wsnyder $
 # See copyright, etc in below POD section.
 ######################################################################
 
@@ -33,7 +32,7 @@ if (!GetOptions (
 		 "version"	=> \&version,
 		 "port=i"	=> sub {$server_params{port} = $_[1];},
 		 "path=s"	=> sub {$server_params{port} = $_[1];
-    	    	    		        $server_params{family}='UNIX';},
+					$server_params{family}='UNIX';},
 		 "fork!"	=> \$opt_fork,
 		 )) {
     die "%Error: Bad usage, try 'lockerd --help'\n";
@@ -70,14 +69,12 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    print '$Id: lockerd 94 2008-01-17 16:12:52Z wsnyder $ ', "\n";
     pod2usage(-verbose=>2, -exitval => 2);
     exit(1);
 }
 
 sub version {
-    print 'Version: $Id: lockerd 94 2008-01-17 16:12:52Z wsnyder $ ';
-    print "\n";
+    print "Version: $IPC::Locker::VERSION\n";
     exit (1);
 }
 
@@ -129,7 +126,7 @@ Specifies the port number to be used.
 
 Specifies that UNIX FIFO will be used for communications with clients and
 the path to the FIFO.
-  
+
 =item --version
 
 Displays program version and exits.
@@ -143,7 +140,7 @@ requests per second on a 2GHz AMD Operton server.
 
 =head1 DISTRIBUTION
 
-The latest version is available from CPAN and from L<http://www.veripool.com/>.
+The latest version is available from CPAN and from L<http://www.veripool.org/>.
 
 Copyright 1999-2008 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
