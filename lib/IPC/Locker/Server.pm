@@ -80,7 +80,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.482';
+$VERSION = '1.483';
 $Hostname = IPC::Locker::hostfqdn();
 
 ######################################################################
@@ -489,7 +489,7 @@ sub exist_traffic {
     # Handle UDP responses from our $Exister->pid_request calls.
     _timelog("UDP PidStat in...\n") if $Debug;
     my ($pid,$exists,$onhost) = $Exister->recv_stat();
-    if (defined $pid && $exists) {
+    if (defined $pid && defined $exists && !$exists) {
 	# We only care about known-missing processes
 	_timelog("   UDP PidStat PID $pid no longer with us.  RIP.\n") if $Debug;
 	dead_pid($onhost,$pid);
