@@ -1,16 +1,5 @@
 # See copyright, etc in below POD section.
 ######################################################################
-#
-# Copyright 1999-2008 by Wilson Snyder.  This program is free software;
-# you can redistribute it and/or modify it under the terms of either the GNU
-# General Public License or the Perl Artistic License.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-######################################################################
 
 package IPC::PidStat;
 require 5.004;
@@ -35,7 +24,7 @@ our @_Local_Responses;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.483';
+$VERSION = '1.484';
 
 # True if pid existance can be detected by looking at /proc filesystem
 $Stat_Of_Pid_Supported = -e "/proc/1";
@@ -334,9 +323,9 @@ looked up via /etc/services, else 1752.
 
 The latest version is available from CPAN and from L<http://www.veripool.org/>.
 
-Copyright 2002-2008 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2009 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
-Lesser General Public License or the Perl Artistic License.
+Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
 =head1 AUTHORS
 

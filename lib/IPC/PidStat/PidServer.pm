@@ -20,7 +20,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.483';
+$VERSION = '1.484';
 
 $Hostname = IPC::Locker::hostfqdn();
 
@@ -134,9 +134,9 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 
 The latest version is available from CPAN and from L<http://www.veripool.org/>.
 
-Copyright 2002-2008 by Wilson Snyder.  This package is free software; you
+Copyright 2002-2009 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
-Lesser General Public License or the Perl Artistic License.
+Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
 =head1 AUTHORS
 

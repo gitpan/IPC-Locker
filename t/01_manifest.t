@@ -1,16 +1,16 @@
 #!/usr/bin/perl -w
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2007-2008 by Wilson Snyder.  This program is free software;
+# Copyright 2007-2009 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
-# Lesser General Public License or the Perl Artistic License.
+# Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
 use strict;
 use Test;
 
 BEGIN { plan tests => 1 }
 
-if (!$ENV{VERILATOR_AUTHOR_SITE}) {
+if (!$ENV{IPCLOCKER_AUTHOR_SITE}) {
     skip("author only test (harmless)",1);
 } else {
     eval { use ExtUtils::Manifest; };
