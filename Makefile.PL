@@ -1,6 +1,6 @@
 # DESCRIPTION: Perl ExtUtils: Type 'perl Makefile.PL' to create a Makefile for this package
 #
-# Copyright 1999-2009 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2010 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
@@ -54,7 +54,7 @@ WriteMakefile(
 	      ABSTRACT_FROM => 'lib/IPC/Locker.pm',
 	      VERSION_FROM => 'lib/IPC/Locker.pm',
 	      PREREQ_PM => {'Net::Domain' => 0,
-			    'Pod::Usage' => 0,
+			    'Pod::Usage' => 1.34,
 			    'Time::HiRes' => 0,
 			},
 	      NO_META	=> 1,
