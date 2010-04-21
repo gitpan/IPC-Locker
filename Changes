@@ -2,6 +2,15 @@ Revision history for Perl extension IPC::Locker
 
 The contributors that suggested a given feature are shown in [].
 
+* IPC::Locker 1.486 2010/04/20
+
+**	Add 3 automatic retries on connection failures.  [Krishna Subramanian]
+	Override using IPC::Locker->new()'s connect_tries and connect_sleep.
+
+***	Fix repeating locks to one client, bug237.  [by Krishna Subramanian]
+
+****	Fix "waiting" messages to show first lock name, not last.
+
 * IPC::Locker 1.485 2010/03/04
 
 ****	Fix Pod::Usage dependency, rt51024.  [Andreas Koenig]

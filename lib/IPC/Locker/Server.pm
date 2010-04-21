@@ -80,7 +80,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.485';
+$VERSION = '1.486';
 $Hostname = IPC::Locker::hostfqdn();
 
 ######################################################################
@@ -182,6 +182,7 @@ sub start_server {
 		exist_traffic();
 	    } else {
 		my $data = '';
+		# For debug, change the 1000 to 1 below
 		my $rc = recv($fh, $data, 1000, 0);
 		if ($data eq '') {
 		    # we have finished with the socket
@@ -231,7 +232,7 @@ sub client_service {
 
     # We may return before processing all lines, thus the lines are
     # stored in the client variables
-    foreach my $line (@{$linesref}) {
+    while (defined (my $line = shift @{$linesref})) {
 	_timelog("c$clientvar->{client_num}: REQ $line\n") if $Debug;
 	my ($cmd,@param) = split /\s+/, $line;  # We rely on the newline to terminate the split
 	if ($cmd) {
@@ -298,20 +299,26 @@ sub client_close {
 
 sub client_status {
     # Send status of lock back to client
+    # Return 1 if success (client didn't hangup)
     my $clientvar = shift || die;
     $clientvar->{locked} = 0;
     $clientvar->{owner} = "";
     my $send = "";
     foreach my $lockname (@{$clientvar->{locks}}) {
 	if (my $locki = locki_find ($lockname)) {
-	    $clientvar->{locked} = ($locki->{owner} eq $clientvar->{user})?1:0;
-	    $clientvar->{owner} = $locki->{owner};
-	    $clientvar->{locks} = [$locki->{lock}] if $locki->{locked};
-	    if ($clientvar->{locked} && $clientvar->{told_locked}) {
-		$clientvar->{told_locked} = 0;
-		$send .= "print_obtained\n";
+	    if ($locki->{owner} eq $clientvar->{user}) {  # (Re) got lock
+		$clientvar->{locked} = 1;
+		$clientvar->{locks} = [$locki->{lock}];
+		$clientvar->{owner} = $locki->{owner};  # == Ourself
+		if ($clientvar->{told_locked}) {
+		    $clientvar->{told_locked} = 0;
+		    $send .= "print_obtained\n";
+		}
+		last;
+	    } else {
+		# Indicate first owner, for client "waiting" message 
+		$clientvar->{owner} = $locki->{owner} if !$clientvar->{owner};
 	    }
-	    last if $clientvar->{locked};
 	}
     }
 
@@ -351,12 +358,14 @@ sub client_lock {
 		# Older clients will ignore it.
 		client_send ($clientvar, "autounlock_check $locki->{lock} $locki->{hostname} $locki->{pid} 2\n");
 	    }
-	    # Try to have timer/exister clearup existing lock
+	    # Try to have timer/exister clear up existing lock
 	    locki_recheck($locki,undef); # locki maybe deleted
 	} else {
-	    # Know there's a free lock, munge request to point to only it
-	    $clientvar->{locks} = [$lockname];
-	    last;
+	    if (!$clientvar->{locked}) {  # Unlikely - some async path established the lock
+		# Know there's a free lock; for speed, munge request to point to only it
+		$clientvar->{locks} = [$lockname];
+		last;
+	    }
 	}
     }
 
@@ -367,7 +376,7 @@ sub client_lock {
 	# Create new request.  If it can be serviced, this will
 	# establish the lock and send status back.
 	my $locki = locki_new_request($lockname, $clientvar);
-	$first_locki = $locki;
+	$first_locki ||= $locki;
 	# Done if found free lock
 	last if $clientvar->{locked};
     }
@@ -704,19 +713,10 @@ sub DESTROY {
 #### Logging
 
 sub _timelog {
-    my $msg = join('',@_);
-    my ($time, $time_usec) = Time::HiRes::gettimeofday();
-    my ($sec,$min,$hour,$mday,$mon) = localtime($time);
-    printf +("[%02d/%02d %02d:%02d:%02d.%06d] %s",
-	     $mon+1, $mday, $hour, $min, $sec, $time_usec, $msg);
+    IPC::Locker::_timelog(@_);
 }
-
 sub _timelog_split {
-    my $first = shift;
-    my $prefix = shift;
-    my $text = shift;
-    my $msg = $first . join("\n$prefix", split(/\n+/, "\n$text")) . "\n";
-    _timelog($msg)
+    IPC::Locker::_timelog_split(@_);
 }
 
 ######################################################################
