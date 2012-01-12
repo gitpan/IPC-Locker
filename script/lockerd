@@ -69,7 +69,7 @@ sub sig_HUP {
 ######################################################################
 
 sub usage {
-    pod2usage(-verbose=>2, -exitval => 2);
+    pod2usage(-verbose=>2, -exitval=>2, -output=>\*STDOUT);
     exit(1);
 }
 
@@ -142,7 +142,7 @@ requests per second on a 2GHz AMD Operton server.
 
 The latest version is available from CPAN and from L<http://www.veripool.org/>.
 
-Copyright 1999-2010 by Wilson Snyder.  This package is free software; you
+Copyright 1999-2012 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 

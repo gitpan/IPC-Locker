@@ -3,7 +3,7 @@
 # Before `make install' is performed this script should be runnable with
 # `make test'. After `make install' it should work as `perl test.pl'
 #
-# Copyright 1999-2010 by Wilson Snyder.  This program is free software;
+# Copyright 1999-2012 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
@@ -13,7 +13,7 @@ use Sys::Hostname;
 use strict;
 use vars qw (%SLArgs $Serv_Pid);
 
-BEGIN { plan tests => 17 }
+BEGIN { plan tests => 15 }
 BEGIN { require "t/test_utils.pl"; }
 
 END { kill 'TERM', $Serv_Pid; }
@@ -55,8 +55,6 @@ ok ($exister, 'new');
 
 # Send request and check return
 # These will (probably) use the local path, not the daemon
-ok (check_stat($exister, 'localhost', 1234));
-
 ok (check_stat($exister, 'localhost', 66666));
 
 ok (check_stat($exister, 'localhost', $$));
@@ -64,8 +62,6 @@ ok (check_stat($exister, 'localhost', $$));
 # Send request and check return
 # These will use the remote path
 %IPC::PidStat::Local_Hostnames = ();  # Hack so we go remotely
-
-ok (check_stat($exister, hostname(), 1234));
 
 ok (check_stat($exister, hostname(), 66666));
 

@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 # DESCRIPTION: Perl ExtUtils: Type 'make test' to test this package
 #
-# Copyright 2007-2010 by Wilson Snyder.  This program is free software;
+# Copyright 2007-2012 by Wilson Snyder.  This program is free software;
 # you can redistribute it and/or modify it under the terms of either the GNU
 # Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
@@ -18,7 +18,7 @@ foreach my $exe (@execs) {
   SKIP: {
       my $cmd = "$PERL $exe --help 2>&1";
       my $help = `$cmd`;
-      like ($help, qr/DISTRIBUTION/, "help result for: $cmd");
+      like ($help, qr/--version/, "help result for: $cmd");
 
       $cmd = "$PERL $exe --version 2>&1";
       $help = `$cmd`;
