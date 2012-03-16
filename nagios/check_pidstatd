@@ -13,7 +13,7 @@ use lib "/usr/lib/nagios/plugins" ;
 use utils qw(%ERRORS &print_revision &support &usage);
 use IPC::PidStat;
 
-$VERSION = '1.490';
+$VERSION = '1.491';
 
 #======================================================================
 # main
@@ -44,7 +44,7 @@ check_pidstatd(%opt_req_params);
 
 sub print_usage {
     print_revision($PROGNAME, $VERSION);
-    pod2usage(-verbose=>2, -exitval=>2, -output=>\*STDOUT, -output=>\*STDOUT);
+    pod2usage(-verbose=>2, -exitval=>2, -output=>\*STDOUT, -noperldoc=>1);
     support();
     exit $ERRORS{'OK'};
 }
