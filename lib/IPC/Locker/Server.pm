@@ -49,7 +49,7 @@ The port number (INET) or name (UNIX) of the lock server.  Defaults to
 
 The latest version is available from CPAN and from L<http://www.veripool.org/>.
 
-Copyright 1999-2012 by Wilson Snyder.  This package is free software; you
+Copyright 1999-2013 by Wilson Snyder.  This package is free software; you
 can redistribute it and/or modify it under the terms of either the GNU
 Lesser General Public License Version 3 or the Perl Artistic License Version 2.0.
 
@@ -87,7 +87,7 @@ use Carp;
 # Other configurable settings.
 $Debug = 0;
 
-$VERSION = '1.491';
+$VERSION = '1.492';
 $Hostname = IPC::Locker::hostfqdn();
 
 ######################################################################
@@ -115,6 +115,7 @@ sub new {
 	#Documented
 	port=>$IPC::Locker::Default_Port,
 	family=>$IPC::Locker::Default_Family,
+	host=>'localhost',
 	@_,};
     bless $self, $class;
     my $param = {@_};
@@ -133,6 +134,7 @@ sub start_server {
     my $server;
     if ($self->{family} eq 'INET') {
 	$server = IO::Socket::INET->new( Proto     => 'tcp',
+					 LocalAddr => $self->{host},
 					 LocalPort => $self->{port},
 					 Listen    => SOMAXCONN,
 					 Reuse     => 1)
